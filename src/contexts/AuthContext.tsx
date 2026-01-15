@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType, Profile, UserRole } from '@/types/auth';
+import { logger } from '@/lib/logger';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -33,13 +34,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        logger.error('Error fetching profile', error);
         return null;
       }
 
       return data as Profile | null;
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile', error);
       return null;
     }
   };
@@ -62,7 +63,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setRole(profileData.role);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      logger.error('Error loading profile', error);
     } finally {
       if (setLoadingState) {
         setLoading(false);
@@ -92,7 +93,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        logger.error('Error initializing auth', error);
         if (mounted) {
           setLoading(false);
         }
