@@ -33,6 +33,9 @@ const Admin = lazy(() => import('./pages/Admin').then((module) => ({ default: mo
 const AdminUsers = lazy(() =>
   import('./pages/AdminUsers').then((module) => ({ default: module.default }))
 );
+const AdminPermissions = lazy(() =>
+  import('./pages/AdminPermissions').then((module) => ({ default: module.default }))
+);
 const Unauthorized = lazy(() =>
   import('./pages/Unauthorized').then((module) => ({ default: module.default }))
 );
@@ -114,6 +117,16 @@ const App = () => (
                       <ProtectedRoute>
                         <RoleRoute allowedRoles={['tcm']}>
                           <AdminUsers />
+                        </RoleRoute>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/app/admin/permissions"
+                    element={
+                      <ProtectedRoute>
+                        <RoleRoute allowedRoles={['tcm']}>
+                          <AdminPermissions />
                         </RoleRoute>
                       </ProtectedRoute>
                     }
