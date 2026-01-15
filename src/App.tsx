@@ -7,6 +7,8 @@ import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { RoleRoute } from '@/components/auth/RoleRoute';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { initializeErrorTracking } from '@/lib/logger';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -19,72 +21,84 @@ import AdminUsers from './pages/AdminUsers';
 import Unauthorized from './pages/Unauthorized';
 import NotFound from './pages/NotFound';
 
-const queryClient = new QueryClient();
+// Initialize error tracking
+initializeErrorTracking();
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/app"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/app/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected Routes */}
+                <Route
+                  path="/app"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/app/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Admin Routes (TCM only) */}
-              <Route
-                path="/app/admin"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={['tcm']}>
-                      <Admin />
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/app/admin/users"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={['tcm']}>
-                      <AdminUsers />
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
+                {/* Admin Routes (TCM only) */}
+                <Route
+                  path="/app/admin"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['tcm']}>
+                        <Admin />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/app/admin/users"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['tcm']}>
+                        <AdminUsers />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
