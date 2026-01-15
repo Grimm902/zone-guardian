@@ -24,4 +24,7 @@ jobs:
         run: npm ci
 
       - name: Run TypeScript type check
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: placeholder-key-for-ci
         run: npm run type-check

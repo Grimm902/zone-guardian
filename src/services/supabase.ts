@@ -25,7 +25,10 @@ export const profileService = {
    * Fetches all profiles (TCM only)
    */
   async getAll(): Promise<{ data: Profile[] | null; error: Error | null }> {
-    const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
 
     return handleSupabaseError(data as Profile[] | null, error);
   },
@@ -50,7 +53,10 @@ export const profileService = {
   /**
    * Updates a user's role (TCM only)
    */
-  async updateRole(userId: string, role: UserRole): Promise<{ data: Profile | null; error: Error | null }> {
+  async updateRole(
+    userId: string,
+    role: UserRole
+  ): Promise<{ data: Profile | null; error: Error | null }> {
     return this.update(userId, { role });
   },
 };
@@ -102,7 +108,12 @@ export const serviceUtils = {
     id: string,
     values: Database['public']['Tables'][T]['Update']
   ): Promise<{ data: Tables<T> | null; error: Error | null }> {
-    const { data, error } = await supabase.from(table).update(values).eq('id', id).select().single();
+    const { data, error } = await supabase
+      .from(table)
+      .update(values)
+      .eq('id', id)
+      .select()
+      .single();
 
     return handleSupabaseError(data as Tables<T> | null, error);
   },

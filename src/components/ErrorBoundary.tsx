@@ -98,7 +98,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
               {import.meta.env.DEV && this.state.error && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Error Details (Development Only):</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Error Details (Development Only):
+                  </p>
                   <pre className="p-4 bg-muted rounded-lg text-xs overflow-auto max-h-64">
                     {this.state.error.toString()}
                     {this.state.errorInfo?.componentStack && (

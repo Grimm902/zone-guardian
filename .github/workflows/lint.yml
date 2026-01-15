@@ -24,6 +24,9 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: placeholder-key-for-ci
         run: npm run lint
 
       - name: Check formatting

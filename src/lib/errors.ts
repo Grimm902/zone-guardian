@@ -23,7 +23,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 
   // Permission errors
   'permission denied': 'You do not have permission to perform this action.',
-  'new row violates row-level security policy': 'You do not have permission to perform this action.',
+  'new row violates row-level security policy':
+    'You do not have permission to perform this action.',
 };
 
 /**
@@ -57,7 +58,10 @@ export const isPostgrestError = (error: unknown): error is PostgrestError => {
 /**
  * Extracts a user-friendly error message from an error
  */
-export const getErrorMessage = (error: unknown, fallback = 'An unexpected error occurred'): string => {
+export const getErrorMessage = (
+  error: unknown,
+  fallback = 'An unexpected error occurred'
+): string => {
   if (!error) {
     return fallback;
   }

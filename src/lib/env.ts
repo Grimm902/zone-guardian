@@ -6,23 +6,33 @@ import { z } from 'zod';
  */
 const envSchema = z.object({
   VITE_SUPABASE_URL: z.string().url('VITE_SUPABASE_URL must be a valid URL'),
-  VITE_SUPABASE_PUBLISHABLE_KEY: z
-    .string()
-    .min(1, 'VITE_SUPABASE_PUBLISHABLE_KEY is required'),
+  VITE_SUPABASE_PUBLISHABLE_KEY: z.string().min(1, 'VITE_SUPABASE_PUBLISHABLE_KEY is required'),
 });
 
 /**
- * Validated environment variables
- * Throws an error at module load time if validation fails
+ * Cached validated environment variables
+ * Validated lazily on first access
  */
-const parseEnv = () => {
+let cachedEnv: z.infer<typeof envSchema> | null = null;
+
+/**
+ * Validates environment variables
+ * Throws an error if validation fails
+ */
+const validateEnv = (): z.infer<typeof envSchema> => {
+  if (cachedEnv) {
+    return cachedEnv;
+  }
+
   const parsed = envSchema.safeParse({
     VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
     VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   });
 
   if (!parsed.success) {
-    const errors = parsed.error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+    const errors = parsed.error.errors
+      .map((err) => `${err.path.join('.')}: ${err.message}`)
+      .join('\n');
     throw new Error(
       `Invalid environment variables:\n${errors}\n\n` +
         'Please check your .env file and ensure all required variables are set.\n' +
@@ -30,16 +40,24 @@ const parseEnv = () => {
     );
   }
 
-  return parsed.data;
+  cachedEnv = parsed.data;
+  return cachedEnv;
 };
 
 /**
  * Validated environment variables
  * Access this instead of import.meta.env directly for type safety
+ * Uses lazy validation - only validates when properties are accessed
+ * This allows the module to load in CI/build environments
  */
-export const env = parseEnv();
+export const env = new Proxy({} as z.infer<typeof envSchema>, {
+  get(_target, prop: keyof z.infer<typeof envSchema>) {
+    const validated = validateEnv();
+    return validated[prop];
+  },
+});
 
 /**
  * Type-safe environment variable access
  */
-export type Env = typeof env;
+export type Env = z.infer<typeof envSchema>;

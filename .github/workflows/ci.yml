@@ -24,6 +24,9 @@ jobs:
         run: npm ci
 
       - name: Run type check
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: placeholder-key-for-ci
         run: npm run type-check
 
       - name: Run linter
@@ -33,7 +36,13 @@ jobs:
         run: npm run format:check
 
       - name: Run tests
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: placeholder-key-for-ci
         run: npm run test:run
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: placeholder-key-for-ci
         run: npm run build

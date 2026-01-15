@@ -43,55 +43,55 @@ const App = () => (
           <BrowserRouter>
             <AuthProvider>
               <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
+                {/* Public Routes */}
+                <Route path="/" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/app"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/app/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected Routes */}
+                <Route
+                  path="/app"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/app/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Admin Routes (TCM only) */}
-              <Route
-                path="/app/admin"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={['tcm']}>
-                      <Admin />
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/app/admin/users"
-                element={
-                  <ProtectedRoute>
-                    <RoleRoute allowedRoles={['tcm']}>
-                      <AdminUsers />
-                    </RoleRoute>
-                  </ProtectedRoute>
-                }
-              />
+                {/* Admin Routes (TCM only) */}
+                <Route
+                  path="/app/admin"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['tcm']}>
+                        <Admin />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/app/admin/users"
+                  element={
+                    <ProtectedRoute>
+                      <RoleRoute allowedRoles={['tcm']}>
+                        <AdminUsers />
+                      </RoleRoute>
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Catch-all */}
-              <Route path="*" element={<NotFound />} />
+                {/* Catch-all */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>
           </BrowserRouter>
