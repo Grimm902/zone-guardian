@@ -112,42 +112,46 @@ class Logger {
     }
   }
 
-/**
- * Logs to remote error tracking service (Sentry)
- */
-private logRemote(level: LogLevel, message: string, ...args: unknown[]): void {
-  // Only log errors to Sentry
-  if (level >= LogLevel.ERROR && typeof window !== 'undefined' && (window as unknown as { Sentry?: typeof import('@sentry/react') }).Sentry) {
-    const Sentry = (window as unknown as { Sentry: typeof import('@sentry/react') }).Sentry;
-    const error = args[0] instanceof Error ? args[0] : new Error(message);
-    
-    Sentry.captureException(error, {
-      level: this.getSentryLevel(level),
-      extra: {
-        message,
-        args: args.length > 1 ? args.slice(1) : undefined,
-      },
-    });
-  }
-}
+  /**
+   * Logs to remote error tracking service (Sentry)
+   */
+  private logRemote(level: LogLevel, message: string, ...args: unknown[]): void {
+    // Only log errors to Sentry
+    if (
+      level >= LogLevel.ERROR &&
+      typeof window !== 'undefined' &&
+      (window as unknown as { Sentry?: typeof import('@sentry/react') }).Sentry
+    ) {
+      const Sentry = (window as unknown as { Sentry: typeof import('@sentry/react') }).Sentry;
+      const error = args[0] instanceof Error ? args[0] : new Error(message);
 
-/**
- * Gets the Sentry severity level
- */
-private getSentryLevel(level: LogLevel): 'debug' | 'info' | 'warning' | 'error' {
-  switch (level) {
-    case LogLevel.DEBUG:
-      return 'debug';
-    case LogLevel.INFO:
-      return 'info';
-    case LogLevel.WARN:
-      return 'warning';
-    case LogLevel.ERROR:
-      return 'error';
-    default:
-      return 'error';
+      Sentry.captureException(error, {
+        level: this.getSentryLevel(level),
+        extra: {
+          message,
+          args: args.length > 1 ? args.slice(1) : undefined,
+        },
+      });
+    }
   }
-}
+
+  /**
+   * Gets the Sentry severity level
+   */
+  private getSentryLevel(level: LogLevel): 'debug' | 'info' | 'warning' | 'error' {
+    switch (level) {
+      case LogLevel.DEBUG:
+        return 'debug';
+      case LogLevel.INFO:
+        return 'info';
+      case LogLevel.WARN:
+        return 'warning';
+      case LogLevel.ERROR:
+        return 'error';
+      default:
+        return 'error';
+    }
+  }
 
   /**
    * Sets the log level
@@ -177,11 +181,11 @@ export const logger = new Logger();
 export const initializeErrorTracking = async (): Promise<void> => {
   // Only initialize Sentry if DSN is provided
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
-  
+
   if (sentryDsn && typeof window !== 'undefined') {
     try {
       const Sentry = await import('@sentry/react');
-      
+
       Sentry.init({
         dsn: sentryDsn,
         environment: import.meta.env.MODE || 'development',

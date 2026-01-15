@@ -34,13 +34,16 @@ describe('FormField', () => {
     expect(screen.queryByText(/required/i)).not.toBeInTheDocument();
   });
 
-  it('should render description when provided', () => {
+  it('should render required indicator when required prop is true', () => {
     render(
-      <FormField label="Email" htmlFor="email" description="Enter your email address">
+      <FormField label="Email" htmlFor="email" required>
         <input id="email" type="email" />
       </FormField>
     );
 
-    expect(screen.getByText('Enter your email address')).toBeInTheDocument();
+    const label = screen.getByText('Email');
+    expect(label).toBeInTheDocument();
+    // Required indicator should be present (asterisk)
+    expect(label.textContent).toContain('*');
   });
 });

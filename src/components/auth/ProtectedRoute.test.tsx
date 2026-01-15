@@ -4,9 +4,14 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Mock the auth context
-vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: vi.fn(),
-}));
+vi.mock('@/contexts/AuthContext', async () => {
+  const actual =
+    await vi.importActual<typeof import('@/contexts/AuthContext')>('@/contexts/AuthContext');
+  return {
+    ...actual,
+    useAuth: vi.fn(),
+  };
+});
 
 // Mock LoadingSpinner
 vi.mock('@/components/ui/loading-spinner', () => ({

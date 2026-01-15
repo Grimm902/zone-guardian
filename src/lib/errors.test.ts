@@ -37,7 +37,9 @@ describe('Error Utilities', () => {
     });
 
     it('should handle string errors', () => {
-      expect(getErrorMessage('Failed to fetch')).toBe('Network error. Please check your internet connection.');
+      expect(getErrorMessage('Failed to fetch')).toBe(
+        'Network error. Please check your internet connection.'
+      );
     });
   });
 

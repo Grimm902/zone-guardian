@@ -29,6 +29,7 @@ describe('profileService', () => {
     mockEq.mockReturnValue({
       maybeSingle: mockMaybeSingle,
       single: mockSingle,
+      select: mockSelect,
     });
     mockOrder.mockReturnValue({
       maybeSingle: mockMaybeSingle,
@@ -113,7 +114,8 @@ describe('profileService', () => {
         },
       ];
 
-      mockMaybeSingle.mockResolvedValue({
+      // getAll() doesn't use maybeSingle, it returns data directly from order()
+      mockOrder.mockResolvedValue({
         data: mockProfiles,
         error: null,
       });

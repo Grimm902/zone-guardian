@@ -14,15 +14,31 @@ import { initializeErrorTracking } from '@/lib/logger';
 
 // Lazy load page components for code splitting
 const Login = lazy(() => import('./pages/Login').then((module) => ({ default: module.default })));
-const Register = lazy(() => import('./pages/Register').then((module) => ({ default: module.default })));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then((module) => ({ default: module.default })));
-const ResetPassword = lazy(() => import('./pages/ResetPassword').then((module) => ({ default: module.default })));
-const Dashboard = lazy(() => import('./pages/Dashboard').then((module) => ({ default: module.default })));
-const Profile = lazy(() => import('./pages/Profile').then((module) => ({ default: module.default })));
+const Register = lazy(() =>
+  import('./pages/Register').then((module) => ({ default: module.default }))
+);
+const ForgotPassword = lazy(() =>
+  import('./pages/ForgotPassword').then((module) => ({ default: module.default }))
+);
+const ResetPassword = lazy(() =>
+  import('./pages/ResetPassword').then((module) => ({ default: module.default }))
+);
+const Dashboard = lazy(() =>
+  import('./pages/Dashboard').then((module) => ({ default: module.default }))
+);
+const Profile = lazy(() =>
+  import('./pages/Profile').then((module) => ({ default: module.default }))
+);
 const Admin = lazy(() => import('./pages/Admin').then((module) => ({ default: module.default })));
-const AdminUsers = lazy(() => import('./pages/AdminUsers').then((module) => ({ default: module.default })));
-const Unauthorized = lazy(() => import('./pages/Unauthorized').then((module) => ({ default: module.default })));
-const NotFound = lazy(() => import('./pages/NotFound').then((module) => ({ default: module.default })));
+const AdminUsers = lazy(() =>
+  import('./pages/AdminUsers').then((module) => ({ default: module.default }))
+);
+const Unauthorized = lazy(() =>
+  import('./pages/Unauthorized').then((module) => ({ default: module.default }))
+);
+const NotFound = lazy(() =>
+  import('./pages/NotFound').then((module) => ({ default: module.default }))
+);
 
 // Initialize error tracking (async, but don't block app startup)
 initializeErrorTracking().catch(() => {
