@@ -1,0 +1,304 @@
+# Zone Guardian - Cursor AI Rules
+
+This file contains rules and guidelines for Cursor AI to follow when generating code for the Zone Guardian project.
+
+## Project Context
+
+- **Project Type**: React + TypeScript + Vite
+- **UI Framework**: shadcn/ui components
+- **Styling**: Tailwind CSS with custom design tokens
+- **State Management**: React Context + React Query (@tanstack/react-query)
+- **Form Handling**: React Hook Form + Zod validation
+- **Routing**: React Router DOM v6
+- **Backend**: Supabase (authentication, database)
+- **Style Guide**: See `guides/STYLE_GUIDE.md` for comprehensive guidelines
+
+## Code Style Rules
+
+### General
+- Follow the style guide in `guides/STYLE_GUIDE.md` at all times
+- Use TypeScript strictly - no `any` types, prefer `unknown` when type is truly unknown
+- Single quotes for strings
+- Semicolons required
+- 2-space indentation (no tabs)
+- 100 character line length (soft limit)
+- Trailing commas in multi-line objects, arrays, and function parameters
+- Use arrow function parentheses when type annotations are needed
+
+### TypeScript
+- Use `interface` for object shapes and component props
+- Use `type` for unions, intersections, and computed types
+- Explicitly type function parameters and return types for public APIs
+- Let TypeScript infer types when obvious
+- Export types and interfaces that are used across multiple files
+- Use `import type` for type-only imports
+
+### File Naming
+- **Components**: PascalCase (e.g., `Button.tsx`, `UserProfile.tsx`)
+- **Utilities**: camelCase (e.g., `utils.ts`, `validations.ts`)
+- **Hooks**: camelCase with `use` prefix (e.g., `useAuth.tsx`, `useMobile.tsx`)
+- **Types**: camelCase (e.g., `auth.ts`, `user.ts`)
+- **Constants**: UPPER_SNAKE_CASE for exported constants
+
+## Component Patterns
+
+### Component Structure
+- Use functional components with hooks
+- Named exports for reusable components
+- Default exports only for page components (in `src/pages/`)
+- Define props interfaces above the component
+- Use `cn()` utility from `@/lib/utils` for conditional classes
+
+### Component Layout Order
+1. Imports (grouped: external → internal @/ → relative → types)
+2. Type/Interface definitions
+3. Component definition
+4. Helper functions (if needed)
+5. Export
+
+### Example Component Structure
+```typescript
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import type { User } from '@/types/auth';
+
+interface MyComponentProps {
+  title: string;
+  user?: User;
+}
+
+export const MyComponent = ({ title, user }: MyComponentProps) => {
+  const [count, setCount] = useState(0);
+
+  const handleClick = () => {
+    setCount(count + 1);
+  };
+
+  return (
+    <div className="space-y-4">
+      <h1>{title}</h1>
+      <Button onClick={handleClick}>Count: {count}</Button>
+    </div>
+  );
+};
+```
+
+## Import Organization
+
+Group imports in this order:
+1. External dependencies (React, third-party libraries)
+2. Internal absolute imports (using `@/` alias)
+3. Relative imports
+4. Type-only imports (use `import type`)
+
+```typescript
+// ✅ Good
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/forms/FormField';
+import type { User } from '@/types/auth';
+```
+
+## Layout Patterns
+
+### Page Layouts
+- Use `AppLayout` from `@/components/layout/AppLayout` for authenticated pages
+- Use `AuthLayout` from `@/components/layout/AuthLayout` for authentication pages
+- Wrap page content in layout component
+
+### Container Usage
+- Use `container` class for main content areas
+- Use `max-w-*` classes for constrained content (e.g., `max-w-2xl` for forms)
+
+### Spacing
+- Page sections: `space-y-8`
+- Forms: `space-y-6`
+- Form groups: `space-y-4`
+- Card content: `space-y-4` or `space-y-6`
+
+## Design System Rules
+
+### Colors
+- **ALWAYS** use semantic color tokens, never hardcoded colors
+- Use `bg-background`, `text-foreground`, `border-border` etc.
+- Use `text-muted-foreground` for secondary text
+- Use `bg-primary`, `text-primary-foreground` for primary actions
+- Use `bg-accent`, `text-accent-foreground` for accents
+- Use `bg-destructive`, `text-destructive-foreground` for errors
+- Use `bg-success`, `text-success-foreground` for success states
+
+### Typography
+- Use `font-display` for headings (DM Sans)
+- Use `font-sans` for body text (Inter) - default
+- Heading sizes: `text-3xl` (h1), `text-2xl` (h2), `text-xl` (h3)
+- Body sizes: `text-base` (default), `text-sm` (small), `text-lg` (large)
+- Font weights: `font-medium`, `font-semibold`, `font-bold`
+
+### Spacing
+- Gaps: `gap-2` (small), `gap-4` (medium), `gap-6` (large), `gap-8` (extra large)
+- Padding: `p-4` (small), `p-6` (cards), `p-8` (sections)
+- Vertical spacing: `space-y-4`, `space-y-6`, `space-y-8`
+
+### Border Radius
+- Use theme tokens: `rounded-sm`, `rounded-md`, `rounded-lg` (default)
+
+### Shadows
+- Use semantic tokens: `shadow-sm`, `shadow-md`, `shadow-lg`
+
+### Icons
+- Consistent sizing: `h-4 w-4` (small), `h-5 w-5` (medium), `h-6 w-6` (large)
+- Use Lucide React icons from `lucide-react`
+- Include icons in buttons with `gap-2` spacing
+
+## Component Usage
+
+### UI Components (shadcn/ui)
+- Import from `@/components/ui/` directory
+- Use Card components: `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`
+- Use Button with proper variants: `default`, `secondary`, `outline`, `ghost`, `destructive`
+- Use Alert for error messages: `Alert`, `AlertDescription` with `AlertCircle` icon
+- Use Input, Label, Textarea from UI components
+- Use LoadingSpinner for loading states
+
+### Form Components
+- Use `FormField` wrapper from `@/components/forms/FormField` for all form inputs
+- Use `PasswordInput` from `@/components/forms/PasswordInput` for password fields
+- Use React Hook Form with Zod validation
+- Show validation errors inline using FormField's error prop
+
+### Layout Components
+- Use `AppLayout` for authenticated pages
+- Use `AuthLayout` for login/register/forgot password pages
+- Pass required props: `title` and optional `subtitle` for AuthLayout
+
+## Error Handling
+
+### Error Patterns
+- Return error objects consistently: `{ error: Error | null, data?: T }`
+- Use try-catch for async operations
+- Display errors with Alert component
+- Use `AlertCircle` icon from lucide-react for errors
+
+```typescript
+// ✅ Good
+const fetchData = async (): Promise<{ data?: Data; error: Error | null }> => {
+  try {
+    const { data, error } = await supabase.from('table').select('*');
+    if (error) {
+      return { error: new Error(error.message) };
+    }
+    return { data, error: null };
+  } catch (error) {
+    return { error: error as Error };
+  }
+};
+
+// Display error
+{error && (
+  <Alert variant="destructive">
+    <AlertCircle className="h-4 w-4" />
+    <AlertDescription>{error.message}</AlertDescription>
+  </Alert>
+)}
+```
+
+## Form Patterns
+
+### React Hook Form + Zod
+- Use `useForm` hook with `zodResolver`
+- Define Zod schemas in `@/lib/validations`
+- Infer TypeScript types from Zod schemas using `z.infer<typeof schema>`
+- Use `FormField` wrapper for all inputs
+- Show validation errors inline
+- Disable submit button during submission
+
+```typescript
+// ✅ Good
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, type LoginFormData } from '@/lib/validations';
+
+const Login = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    // Handle submission
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <FormField label="Email" htmlFor="email" error={errors.email?.message}>
+        <Input id="email" {...register('email')} />
+      </FormField>
+      <Button type="submit" disabled={isSubmitting}>
+        Submit
+      </Button>
+    </form>
+  );
+};
+```
+
+## Event Handlers
+
+- Prefix event handlers with `handle`
+- Use descriptive names: `handleSubmit`, `handleUserClick`, `handleDelete`
+- Never use generic names like `onClick`, `click`
+
+```typescript
+// ✅ Good
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  // ...
+};
+
+// ❌ Bad
+const onClick = () => {};
+```
+
+## Responsive Design
+
+- Mobile-first approach
+- Use Tailwind breakpoints: `md:` (768px+), `lg:` (1024px+), `xl:` (1280px+)
+- Hide/show elements: `hidden md:block`, `md:hidden`
+- Responsive spacing: `gap-4 md:gap-6 lg:gap-8`
+- Responsive layouts: `flex-col md:flex-row`
+
+## Animations
+
+- Use available animation utilities: `animate-fade-in`, `animate-slide-up`, `animate-slide-down`
+- Apply to page content and alerts
+- Keep animations subtle and purposeful
+
+## Comments and Documentation
+
+- Explain "why" not "what" - code should be self-documenting
+- Add JSDoc comments for exported functions and components
+- Document complex algorithms or business logic
+- Use comments sparingly
+
+## Additional Guidelines
+
+- Always check existing code patterns before creating new components
+- Follow the established directory structure
+- Use absolute imports with `@/` alias
+- Keep components focused and single-purpose
+- Extract reusable logic into custom hooks
+- Use React Query for server state management
+- Use Context for shared client state
+- Maintain accessibility: proper ARIA labels, focus states, keyboard navigation
+
+## References
+
+- Style Guide: `guides/STYLE_GUIDE.md`
+- Component Library: `src/components/ui/`
+- Layout Components: `src/components/layout/`
+- Type Definitions: `src/types/`
+- Utilities: `src/lib/`
