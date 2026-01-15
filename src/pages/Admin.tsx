@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RoleBadge } from '@/components/ui/role-badge';
-import { Shield, Users, Settings, ArrowRight } from 'lucide-react';
+import { Shield, Users, Settings, ArrowRight, Key } from 'lucide-react';
 
 const Admin = () => {
   const { profile } = useAuth();
@@ -41,7 +41,7 @@ const Admin = () => {
         </Card>
 
         {/* Admin Features Grid */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* User Management Card */}
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
@@ -59,6 +59,29 @@ const Admin = () => {
               <Button asChild className="w-full">
                 <Link to="/app/admin/users">
                   Manage Users
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Permissions Card */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5 text-primary" />
+                Permissions
+              </CardTitle>
+              <CardDescription>View role-based permissions and access levels</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Review detailed permissions for each role in the system. Understand what routes and
+                actions each role can access.
+              </p>
+              <Button asChild className="w-full">
+                <Link to="/app/admin/permissions">
+                  View Permissions
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

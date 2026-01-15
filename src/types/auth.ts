@@ -46,3 +46,198 @@ export const ROLE_COLORS: Record<UserRole, string> = {
   tws: 'bg-muted text-muted-foreground',
   tcp: 'bg-muted text-muted-foreground',
 };
+
+export interface Permission {
+  id: string;
+  name: string;
+  description: string;
+  category: 'route' | 'action';
+}
+
+export interface RolePermissions {
+  role: UserRole;
+  permissions: Permission[];
+}
+
+export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  tcm: [
+    {
+      id: 'access-dashboard',
+      name: 'Access Dashboard',
+      description: 'View and access the main dashboard',
+      category: 'route',
+    },
+    {
+      id: 'access-profile',
+      name: 'Access Profile',
+      description: 'View and edit own profile page',
+      category: 'route',
+    },
+    {
+      id: 'view-own-profile',
+      name: 'View Own Profile',
+      description: 'View own profile information',
+      category: 'action',
+    },
+    {
+      id: 'update-own-profile',
+      name: 'Update Own Profile',
+      description: 'Update own profile (name, phone)',
+      category: 'action',
+    },
+    {
+      id: 'access-admin',
+      name: 'Access Admin Dashboard',
+      description: 'Access the admin dashboard',
+      category: 'route',
+    },
+    {
+      id: 'access-admin-users',
+      name: 'Access User Management',
+      description: 'Access the user management page',
+      category: 'route',
+    },
+    {
+      id: 'view-all-profiles',
+      name: 'View All Profiles',
+      description: 'View all user profiles in the system',
+      category: 'action',
+    },
+    {
+      id: 'update-any-profile',
+      name: 'Update Any Profile',
+      description: 'Update any user profile including role changes',
+      category: 'action',
+    },
+  ],
+  sm: [
+    {
+      id: 'access-dashboard',
+      name: 'Access Dashboard',
+      description: 'View and access the main dashboard',
+      category: 'route',
+    },
+    {
+      id: 'access-profile',
+      name: 'Access Profile',
+      description: 'View and edit own profile page',
+      category: 'route',
+    },
+    {
+      id: 'view-own-profile',
+      name: 'View Own Profile',
+      description: 'View own profile information',
+      category: 'action',
+    },
+    {
+      id: 'update-own-profile',
+      name: 'Update Own Profile',
+      description: 'Update own profile (name, phone only)',
+      category: 'action',
+    },
+  ],
+  dc: [
+    {
+      id: 'access-dashboard',
+      name: 'Access Dashboard',
+      description: 'View and access the main dashboard',
+      category: 'route',
+    },
+    {
+      id: 'access-profile',
+      name: 'Access Profile',
+      description: 'View and edit own profile page',
+      category: 'route',
+    },
+    {
+      id: 'view-own-profile',
+      name: 'View Own Profile',
+      description: 'View own profile information',
+      category: 'action',
+    },
+    {
+      id: 'update-own-profile',
+      name: 'Update Own Profile',
+      description: 'Update own profile (name, phone only)',
+      category: 'action',
+    },
+  ],
+  fs: [
+    {
+      id: 'access-dashboard',
+      name: 'Access Dashboard',
+      description: 'View and access the main dashboard',
+      category: 'route',
+    },
+    {
+      id: 'access-profile',
+      name: 'Access Profile',
+      description: 'View and edit own profile page',
+      category: 'route',
+    },
+    {
+      id: 'view-own-profile',
+      name: 'View Own Profile',
+      description: 'View own profile information',
+      category: 'action',
+    },
+    {
+      id: 'update-own-profile',
+      name: 'Update Own Profile',
+      description: 'Update own profile (name, phone only)',
+      category: 'action',
+    },
+  ],
+  tws: [
+    {
+      id: 'access-dashboard',
+      name: 'Access Dashboard',
+      description: 'View and access the main dashboard',
+      category: 'route',
+    },
+    {
+      id: 'access-profile',
+      name: 'Access Profile',
+      description: 'View and edit own profile page',
+      category: 'route',
+    },
+    {
+      id: 'view-own-profile',
+      name: 'View Own Profile',
+      description: 'View own profile information',
+      category: 'action',
+    },
+    {
+      id: 'update-own-profile',
+      name: 'Update Own Profile',
+      description: 'Update own profile (name, phone only)',
+      category: 'action',
+    },
+  ],
+  tcp: [
+    {
+      id: 'access-dashboard',
+      name: 'Access Dashboard',
+      description: 'View and access the main dashboard',
+      category: 'route',
+    },
+    {
+      id: 'access-profile',
+      name: 'Access Profile',
+      description: 'View and edit own profile page',
+      category: 'route',
+    },
+    {
+      id: 'view-own-profile',
+      name: 'View Own Profile',
+      description: 'View own profile information',
+      category: 'action',
+    },
+    {
+      id: 'update-own-profile',
+      name: 'Update Own Profile',
+      description: 'Update own profile (name, phone only)',
+      category: 'action',
+    },
+  ],
+};
