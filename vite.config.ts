@@ -25,6 +25,23 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    // Force re-optimization when dependencies change
+    // Set to true to force re-optimization (useful when cache is stale)
+    force: false,
+    // Explicitly include dependencies that should be pre-bundled
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@tanstack/react-query',
+      '@supabase/supabase-js',
+      'react-hook-form',
+      '@hookform/resolvers',
+      'zod',
+      'lucide-react',
+    ],
+  },
   build: {
     // Production optimizations
     minify: 'esbuild',

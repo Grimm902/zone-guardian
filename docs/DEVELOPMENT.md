@@ -303,6 +303,51 @@ Follow conventional commits:
 
 Example: `feat: add user profile editing`
 
+## Troubleshooting
+
+### Vite Optimize Dep Errors
+
+If you encounter "504 (Outdated Optimize Dep)" errors, this means Vite's dependency pre-bundling cache is stale. This can happen after:
+
+- Dependency updates
+- Node modules changes
+- Vite version updates
+- Cache corruption
+
+**Solution:**
+
+1. **Clear the Vite cache and restart:**
+   ```bash
+   npm run dev:clean
+   ```
+
+2. **Or clear cache manually:**
+   ```bash
+   npm run clean:cache
+   npm run dev
+   ```
+
+3. **If the issue persists:**
+   - Stop the dev server
+   - Delete `node_modules/.vite` directory manually
+   - Restart the dev server
+
+The `clean:cache` script removes Vite's optimization cache, forcing it to re-bundle dependencies on the next start.
+
+### Other Common Issues
+
+**Port already in use:**
+- Change the port in `vite.config.ts` or kill the process using port 8080
+
+**Type errors after dependency updates:**
+- Run `npm run type-check` to see all TypeScript errors
+- Ensure all dependencies are properly installed: `npm install`
+
+**Build errors:**
+- Clear cache: `npm run clean:cache`
+- Delete `node_modules` and reinstall: `rm -rf node_modules && npm install`
+- Check for TypeScript errors: `npm run type-check`
+
 ## Getting Help
 
 - Check existing documentation
