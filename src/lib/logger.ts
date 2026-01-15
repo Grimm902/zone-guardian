@@ -113,36 +113,43 @@ class Logger {
   }
 
   /**
-   * Logs to remote error tracking service
-   * This is a placeholder for integration with services like Sentry
+   * Logs to remote error tracking service (Sentry)
    */
   private logRemote(level: LogLevel, message: string, ...args: unknown[]): void {
-    // TODO: Integrate with error tracking service (e.g., Sentry)
-    // Example:
-    // if (window.Sentry) {
-    //   window.Sentry.captureException(new Error(message), {
-    //     level: this.getSentryLevel(level),
-    //     extra: { args },
-    //   });
-    // }
+    // Only log errors to Sentry
+    if (
+      level >= LogLevel.ERROR &&
+      typeof window !== 'undefined' &&
+      (window as unknown as { Sentry?: typeof import('@sentry/react') }).Sentry
+    ) {
+      const Sentry = (window as unknown as { Sentry: typeof import('@sentry/react') }).Sentry;
+      const error = args[0] instanceof Error ? args[0] : new Error(message);
 
-    // For now, just log that remote logging would happen
-    if (this.config.remoteEndpoint) {
-      // In a real implementation, you would send this to your error tracking service
-      fetch(this.config.remoteEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          level,
+      Sentry.captureException(error, {
+        level: this.getSentryLevel(level),
+        extra: {
           message,
-          args,
-          timestamp: new Date().toISOString(),
-          url: window.location.href,
-          userAgent: navigator.userAgent,
-        }),
-      }).catch(() => {
-        // Silently fail if remote logging fails
+          args: args.length > 1 ? args.slice(1) : undefined,
+        },
       });
+    }
+  }
+
+  /**
+   * Gets the Sentry severity level
+   */
+  private getSentryLevel(level: LogLevel): 'debug' | 'info' | 'warning' | 'error' {
+    switch (level) {
+      case LogLevel.DEBUG:
+        return 'debug';
+      case LogLevel.INFO:
+        return 'info';
+      case LogLevel.WARN:
+        return 'warning';
+      case LogLevel.ERROR:
+        return 'error';
+      default:
+        return 'error';
     }
   }
 
@@ -168,31 +175,53 @@ class Logger {
 export const logger = new Logger();
 
 /**
- * Initialize error tracking service (e.g., Sentry)
+ * Initialize error tracking service (Sentry)
  * Call this in your main.tsx or App.tsx
  */
-export const initializeErrorTracking = (): void => {
-  // TODO: Initialize error tracking service
-  // Example for Sentry:
-  // import * as Sentry from '@sentry/react';
-  // Sentry.init({
-  //   dsn: import.meta.env.VITE_SENTRY_DSN,
-  //   environment: import.meta.env.MODE,
-  //   integrations: [new Sentry.BrowserTracing()],
-  //   tracesSampleRate: 1.0,
-  // });
+export const initializeErrorTracking = async (): Promise<void> => {
+  // Only initialize Sentry if DSN is provided
+  const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+
+  if (sentryDsn && typeof window !== 'undefined') {
+    try {
+      const Sentry = await import('@sentry/react');
+
+      Sentry.init({
+        dsn: sentryDsn,
+        environment: import.meta.env.MODE || 'development',
+        integrations: [
+          Sentry.browserTracingIntegration(),
+          Sentry.replayIntegration({
+            maskAllText: true,
+            blockAllMedia: true,
+          }),
+        ],
+        tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+        replaysSessionSampleRate: import.meta.env.PROD ? 0.1 : 1.0,
+        replaysOnErrorSampleRate: 1.0,
+      });
+
+      // Make Sentry available globally for logger
+      (window as unknown as { Sentry: typeof Sentry }).Sentry = Sentry;
+    } catch (error) {
+      // Silently fail if Sentry initialization fails
+      logger.warn('Failed to initialize Sentry', error);
+    }
+  }
 
   // Set up global error handlers
-  window.addEventListener('error', (event) => {
-    logger.error('Unhandled error', event.error, {
-      message: event.message,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno,
+  if (typeof window !== 'undefined') {
+    window.addEventListener('error', (event) => {
+      logger.error('Unhandled error', event.error, {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      });
     });
-  });
 
-  window.addEventListener('unhandledrejection', (event) => {
-    logger.error('Unhandled promise rejection', event.reason);
-  });
+    window.addEventListener('unhandledrejection', (event) => {
+      logger.error('Unhandled promise rejection', event.reason);
+    });
+  }
 };

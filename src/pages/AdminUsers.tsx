@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -92,13 +92,17 @@ const AdminUsers = () => {
     }
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = useMemo(
+    () =>
+      users.filter(
+        (user) =>
+          user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [users, searchTerm]
   );
 
-  const roleOptions: UserRole[] = ['tcm', 'sm', 'dc', 'fs', 'tws', 'tcp'];
+  const roleOptions: UserRole[] = useMemo(() => ['tcm', 'sm', 'dc', 'fs', 'tws', 'tcp'], []);
 
   return (
     <AppLayout>
