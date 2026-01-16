@@ -15,4 +15,9 @@ export const queryKeys = {
     session: () => ['auth', 'session'] as const,
     user: () => ['auth', 'user'] as const,
   },
+
+  // Settings queries
+  settings: {
+    current: () => ['settings', 'current'] as const,
+  },
 } as const;

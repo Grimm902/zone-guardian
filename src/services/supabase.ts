@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/lib/errors';
 import type { Profile, UserRole } from '@/types/auth';
+import type { SystemSettings } from '@/types/settings';
 import type { Database, Tables } from '@/integrations/supabase/types';
 
 /**
@@ -58,6 +59,41 @@ export const profileService = {
     role: UserRole
   ): Promise<{ data: Profile | null; error: Error | null }> {
     return this.update(userId, { role });
+  },
+};
+
+/**
+ * System settings service
+ * Handles all system settings operations (TCM only)
+ */
+export const settingsService = {
+  /**
+   * Fetches system settings (singleton)
+   */
+  async get(): Promise<{ data: SystemSettings | null; error: Error | null }> {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .eq('id', '00000000-0000-0000-0000-000000000000')
+      .maybeSingle();
+
+    return handleSupabaseError(data as SystemSettings | null, error);
+  },
+
+  /**
+   * Updates system settings
+   */
+  async update(
+    updates: Partial<Omit<SystemSettings, 'id' | 'created_at' | 'updated_at'>>
+  ): Promise<{ data: SystemSettings | null; error: Error | null }> {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .update(updates)
+      .eq('id', '00000000-0000-0000-0000-000000000000')
+      .select()
+      .single();
+
+    return handleSupabaseError(data as SystemSettings | null, error);
   },
 };
 

@@ -99,11 +99,14 @@ const Admin = () => {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                Additional administrative features and system configuration options will be
-                available here in future updates.
+                Manage organization information, localization settings, timezone preferences, and
+                system branding options.
               </p>
-              <Button variant="outline" className="w-full" disabled>
-                Coming Soon
+              <Button asChild className="w-full">
+                <Link to="/app/admin/settings">
+                  Configure Settings
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
             </CardContent>
           </Card>
