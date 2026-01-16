@@ -38,6 +38,54 @@ export type Database = {
         };
         Relationships: [];
       };
+      system_settings: {
+        Row: {
+          id: string;
+          organization_name: string;
+          contact_email: string | null;
+          contact_phone: string | null;
+          contact_address: string | null;
+          timezone: string;
+          date_format: string;
+          time_format: string;
+          logo_url: string | null;
+          default_language: string;
+          system_description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_name?: string;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          contact_address?: string | null;
+          timezone?: string;
+          date_format?: string;
+          time_format?: string;
+          logo_url?: string | null;
+          default_language?: string;
+          system_description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_name?: string;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          contact_address?: string | null;
+          timezone?: string;
+          date_format?: string;
+          time_format?: string;
+          logo_url?: string | null;
+          default_language?: string;
+          system_description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

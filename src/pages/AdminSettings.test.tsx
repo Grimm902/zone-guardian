@@ -1,0 +1,264 @@
+import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor } from '@/test/utils';
+import userEvent from '@testing-library/user-event';
+import AdminSettings from './AdminSettings';
+import { useSystemSettings, useUpdateSystemSettings } from '@/hooks/queries/useSystemSettings';
+import { toast } from 'sonner';
+
+// Mock dependencies
+vi.mock('@/hooks/queries/useSystemSettings', () => ({
+  useSystemSettings: vi.fn(),
+  useUpdateSystemSettings: vi.fn(),
+}));
+
+// Mock next-themes to avoid matchMedia issues
+vi.mock('next-themes', () => ({
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useTheme: () => ({
+    theme: 'light',
+    setTheme: vi.fn(),
+    resolvedTheme: 'light',
+  }),
+}));
+
+vi.mock('sonner', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+// Mock LoadingSpinner
+vi.mock('@/components/ui/loading-spinner', () => ({
+  LoadingSpinner: ({ size, text }: { size?: string; text?: string }) => (
+    <div data-testid="loading-spinner" data-size={size} data-text={text} />
+  ),
+}));
+
+const mockSettings = {
+  id: '00000000-0000-0000-0000-000000000000',
+  organization_name: 'Test Organization',
+  contact_email: 'contact@test.com',
+  contact_phone: '+1 (555) 123-4567',
+  contact_address: '123 Test St',
+  timezone: 'America/New_York',
+  date_format: 'MM/dd/yyyy',
+  time_format: '12h' as const,
+  logo_url: 'https://example.com/logo.png',
+  default_language: 'en',
+  system_description: 'Test description',
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
+};
+
+describe('AdminSettings', () => {
+  const mockMutateAsync = vi.fn();
+  const mockUpdateSettings = {
+    mutateAsync: mockMutateAsync,
+    isPending: false,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (useSystemSettings as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockSettings,
+      isLoading: false,
+      error: null,
+    });
+    (useUpdateSystemSettings as ReturnType<typeof vi.fn>).mockReturnValue(mockUpdateSettings);
+  });
+
+  it('should render settings form with current data', () => {
+    render(<AdminSettings />);
+
+    expect(screen.getByText(/system settings/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(mockSettings.organization_name)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(mockSettings.contact_email!)).toBeInTheDocument();
+    expect(screen.getByDisplayValue(mockSettings.contact_phone!)).toBeInTheDocument();
+  });
+
+  it('should display loading state', () => {
+    (useSystemSettings as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: null,
+      isLoading: true,
+      error: null,
+    });
+
+    render(<AdminSettings />);
+
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+    expect(screen.getByText(/loading settings/i)).toBeInTheDocument();
+  });
+
+  it('should display error state', () => {
+    (useSystemSettings as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: new Error('Failed to load'),
+    });
+
+    render(<AdminSettings />);
+
+    expect(screen.getByText(/failed to load system settings/i)).toBeInTheDocument();
+  });
+
+  it('should display all form sections', () => {
+    render(<AdminSettings />);
+
+    expect(screen.getByText(/organization information/i)).toBeInTheDocument();
+    expect(screen.getByText(/localization/i)).toBeInTheDocument();
+    expect(screen.getByText(/branding/i)).toBeInTheDocument();
+  });
+
+  it('should update settings successfully', async () => {
+    const user = userEvent.setup({ delay: null });
+    mockMutateAsync.mockResolvedValue(mockSettings);
+
+    render(<AdminSettings />);
+
+    const organizationInput = screen.getByLabelText(/organization name/i);
+    const saveButton = screen.getByRole('button', { name: /save settings/i });
+
+    await user.clear(organizationInput);
+    await user.type(organizationInput, 'Updated Organization');
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        organization_name: 'Updated Organization',
+        contact_email: mockSettings.contact_email,
+        contact_phone: mockSettings.contact_phone,
+        contact_address: mockSettings.contact_address,
+        timezone: mockSettings.timezone,
+        date_format: mockSettings.date_format,
+        time_format: mockSettings.time_format,
+        logo_url: mockSettings.logo_url,
+        default_language: mockSettings.default_language,
+        system_description: mockSettings.system_description,
+      });
+    });
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('System settings updated successfully');
+    });
+  });
+
+  it('should display error message on update failure', async () => {
+    const user = userEvent.setup({ delay: null });
+    const error = new Error('Update failed');
+    mockMutateAsync.mockRejectedValue(error);
+
+    render(<AdminSettings />);
+
+    const organizationInput = screen.getByLabelText(/organization name/i);
+    const saveButton = screen.getByRole('button', { name: /save settings/i });
+
+    await user.clear(organizationInput);
+    await user.type(organizationInput, 'Updated Organization');
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Update failed');
+    });
+  });
+
+  it('should disable submit button while updating', async () => {
+    const user = userEvent.setup({ delay: null });
+    (useUpdateSystemSettings as ReturnType<typeof vi.fn>).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: true,
+    });
+
+    render(<AdminSettings />);
+
+    const saveButton = screen.getByRole('button', { name: /saving/i });
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('should reset form when reset button is clicked', async () => {
+    const user = userEvent.setup({ delay: null });
+
+    render(<AdminSettings />);
+
+    const organizationInput = screen.getByLabelText(/organization name/i);
+    const resetButton = screen.getByRole('button', { name: /reset changes/i });
+
+    await user.clear(organizationInput);
+    await user.type(organizationInput, 'Changed Name');
+    await user.click(resetButton);
+
+    await waitFor(() => {
+      expect(organizationInput).toHaveValue(mockSettings.organization_name);
+    });
+  });
+
+  it('should handle empty optional fields', () => {
+    const settingsWithNulls = {
+      ...mockSettings,
+      contact_email: null,
+      contact_phone: null,
+      contact_address: null,
+      logo_url: null,
+      system_description: null,
+    };
+
+    (useSystemSettings as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: settingsWithNulls,
+      isLoading: false,
+      error: null,
+    });
+
+    render(<AdminSettings />);
+
+    expect(screen.getByLabelText(/contact email/i)).toHaveValue('');
+    expect(screen.getByLabelText(/contact phone/i)).toHaveValue('');
+  });
+
+  it('should validate required fields', async () => {
+    const user = userEvent.setup({ delay: null });
+
+    render(<AdminSettings />);
+
+    const organizationInput = screen.getByLabelText(/organization name/i);
+    const saveButton = screen.getByRole('button', { name: /save settings/i });
+
+    await user.clear(organizationInput);
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/organization name is required/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should validate email format', async () => {
+    const user = userEvent.setup({ delay: null });
+
+    render(<AdminSettings />);
+
+    const emailInput = screen.getByLabelText(/contact email/i);
+    const saveButton = screen.getByRole('button', { name: /save settings/i });
+
+    await user.clear(emailInput);
+    await user.type(emailInput, 'invalid-email');
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle timezone selection', async () => {
+    const user = userEvent.setup({ delay: null });
+
+    render(<AdminSettings />);
+
+    const timezoneSelect = screen.getByLabelText(/timezone/i);
+    await user.click(timezoneSelect);
+
+    const utcOption = screen.getByText('UTC');
+    await user.click(utcOption);
+
+    expect(timezoneSelect).toBeInTheDocument();
+  });
+});

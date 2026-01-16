@@ -63,6 +63,21 @@ export const passwordUpdateSchema = z
     path: ['confirmPassword'],
   });
 
+export const systemSettingsSchema = z.object({
+  organization_name: z.string().min(1, 'Organization name is required').max(100),
+  contact_email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  contact_phone: phoneSchema,
+  contact_address: z.string().max(500, 'Address is too long').optional().or(z.literal('')),
+  timezone: z.string().min(1, 'Timezone is required'),
+  date_format: z.enum(['MM/dd/yyyy', 'dd/MM/yyyy', 'yyyy-MM-dd'], {
+    errorMap: () => ({ message: 'Invalid date format' }),
+  }),
+  time_format: z.enum(['12h', '24h']),
+  logo_url: z.string().url('Invalid URL').optional().or(z.literal('')),
+  default_language: z.string().min(2).max(5),
+  system_description: z.string().max(1000, 'Description is too long').optional().or(z.literal('')),
+});
+
 // Type exports
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
@@ -70,3 +85,4 @@ export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type ProfileFormData = z.infer<typeof profileSchema>;
 export type PasswordUpdateFormData = z.infer<typeof passwordUpdateSchema>;
+export type SystemSettingsFormData = z.infer<typeof systemSettingsSchema>;

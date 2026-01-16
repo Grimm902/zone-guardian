@@ -38,6 +38,35 @@ COMMENT ON COLUMN public.profiles.role IS 'User role: tcm (admin), sm, dc, fs, t
 -- Enable RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+-- Create system_settings table (singleton pattern)
+CREATE TABLE IF NOT EXISTS public.system_settings (
+  id UUID PRIMARY KEY DEFAULT '00000000-0000-0000-0000-000000000000'::uuid,
+  organization_name TEXT NOT NULL DEFAULT 'Zone Guardian',
+  contact_email TEXT,
+  contact_phone TEXT,
+  contact_address TEXT,
+  timezone TEXT NOT NULL DEFAULT 'UTC',
+  date_format TEXT NOT NULL DEFAULT 'MM/dd/yyyy',
+  time_format TEXT NOT NULL DEFAULT '12h',
+  logo_url TEXT,
+  default_language TEXT NOT NULL DEFAULT 'en',
+  system_description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT single_row CHECK (id = '00000000-0000-0000-0000-000000000000'::uuid)
+);
+
+-- Add table comment
+COMMENT ON TABLE public.system_settings IS 'System-wide settings (singleton table)';
+
+-- Insert default settings row (idempotent)
+INSERT INTO public.system_settings (id, organization_name)
+VALUES ('00000000-0000-0000-0000-000000000000'::uuid, 'Zone Guardian')
+ON CONFLICT (id) DO NOTHING;
+
+-- Enable RLS
+ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
+
 -- ============================================================================
 -- Indexes
 -- ============================================================================
@@ -127,6 +156,13 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_user();
 
+-- Drop and recreate trigger for system_settings updated_at (idempotent)
+DROP TRIGGER IF EXISTS system_settings_updated_at ON public.system_settings;
+CREATE TRIGGER system_settings_updated_at
+  BEFORE UPDATE ON public.system_settings
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
 -- ============================================================================
 -- RLS Policies
 -- ============================================================================
@@ -169,3 +205,24 @@ CREATE POLICY "Allow insert for authenticated users"
   ON public.profiles
   FOR INSERT
   WITH CHECK (auth.uid() = id);
+
+-- ============================================================================
+-- System Settings RLS Policies
+-- ============================================================================
+
+-- Drop existing policies if they exist (idempotent)
+DROP POLICY IF EXISTS "TCM can view settings" ON public.system_settings;
+DROP POLICY IF EXISTS "TCM can update settings" ON public.system_settings;
+
+-- TCM can view settings
+CREATE POLICY "TCM can view settings"
+  ON public.system_settings
+  FOR SELECT
+  USING (public.is_tcm(auth.uid()));
+
+-- TCM can update settings
+CREATE POLICY "TCM can update settings"
+  ON public.system_settings
+  FOR UPDATE
+  USING (public.is_tcm(auth.uid()))
+  WITH CHECK (public.is_tcm(auth.uid()));
