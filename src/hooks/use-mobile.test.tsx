@@ -65,10 +65,46 @@ describe('useIsMobile', () => {
   });
 
   it('should update on window resize', async () => {
+    const changeCallbacks: (() => void)[] = [];
+    let mediaQueryList: MediaQueryList | null = null;
+
     Object.defineProperty(window, 'innerWidth', {
       writable: true,
       configurable: true,
       value: 1024,
+    });
+
+    window.matchMedia = vi.fn().mockImplementation((query) => {
+      if (!mediaQueryList) {
+        const matches = query.includes('max-width: 767px') && window.innerWidth < 768;
+        mediaQueryList = {
+          matches,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn((event: string, callback: () => void) => {
+            if (event === 'change') {
+              changeCallbacks.push(callback);
+            }
+          }),
+          removeEventListener: vi.fn((event: string, callback: () => void) => {
+            if (event === 'change') {
+              const index = changeCallbacks.indexOf(callback);
+              if (index > -1) {
+                changeCallbacks.splice(index, 1);
+              }
+            }
+          }),
+          dispatchEvent: vi.fn(),
+        } as MediaQueryList;
+      }
+      // Update matches based on current window width
+      if (mediaQueryList) {
+        (mediaQueryList as { matches: boolean }).matches =
+          query.includes('max-width: 767px') && window.innerWidth < 768;
+      }
+      return mediaQueryList;
     });
 
     const { result } = renderHook(() => useIsMobile());
@@ -84,14 +120,15 @@ describe('useIsMobile', () => {
       value: 500,
     });
 
-    // Trigger resize event
-    window.dispatchEvent(new Event('resize'));
-
-    // Also trigger matchMedia change event
-    const mediaQueryList = window.matchMedia('(max-width: 767px)');
-    if (mediaQueryList.addEventListener) {
-      mediaQueryList.addEventListener('change', () => {});
+    // Update matches property
+    if (mediaQueryList) {
+      (mediaQueryList as { matches: boolean }).matches = window.innerWidth < 768;
     }
+
+    // Trigger all registered change callbacks
+    changeCallbacks.forEach((callback) => {
+      callback();
+    });
 
     await waitFor(() => {
       expect(result.current).toBe(true);

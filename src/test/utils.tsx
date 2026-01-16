@@ -21,7 +21,13 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light">
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem={false}
+        forcedTheme="light"
+        disableTransitionOnChange
+      >
         <BrowserRouter>
           <AuthProvider>{children}</AuthProvider>
         </BrowserRouter>
