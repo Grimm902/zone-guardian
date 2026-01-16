@@ -16,20 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  systemSettingsSchema,
-  type SystemSettingsFormData,
-} from '@/lib/validations';
+import { systemSettingsSchema, type SystemSettingsFormData } from '@/lib/validations';
 import { useSystemSettings, useUpdateSystemSettings } from '@/hooks/queries/useSystemSettings';
-import {
-  Settings,
-  Building2,
-  Globe,
-  Image,
-  Save,
-  AlertCircle,
-  RefreshCw,
-} from 'lucide-react';
+import { Settings, Building2, Globe, Image, Save, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Common timezones
@@ -200,9 +189,7 @@ const AdminSettings = () => {
                 <Input
                   id="organization_name"
                   {...form.register('organization_name')}
-                  className={
-                    form.formState.errors.organization_name ? 'border-destructive' : ''
-                  }
+                  className={form.formState.errors.organization_name ? 'border-destructive' : ''}
                 />
               </FormField>
 
@@ -272,9 +259,7 @@ const AdminSettings = () => {
                 >
                   <SelectTrigger
                     id="timezone"
-                    className={
-                      form.formState.errors.timezone ? 'border-destructive' : ''
-                    }
+                    className={form.formState.errors.timezone ? 'border-destructive' : ''}
                   >
                     <SelectValue placeholder="Select timezone" />
                   </SelectTrigger>
@@ -298,14 +283,15 @@ const AdminSettings = () => {
                   <Select
                     value={form.watch('date_format')}
                     onValueChange={(value) =>
-                      form.setValue('date_format', value as 'MM/dd/yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd')
+                      form.setValue(
+                        'date_format',
+                        value as 'MM/dd/yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd'
+                      )
                     }
                   >
                     <SelectTrigger
                       id="date_format"
-                      className={
-                        form.formState.errors.date_format ? 'border-destructive' : ''
-                      }
+                      className={form.formState.errors.date_format ? 'border-destructive' : ''}
                     >
                       <SelectValue placeholder="Select date format" />
                     </SelectTrigger>
@@ -327,15 +313,11 @@ const AdminSettings = () => {
                 >
                   <Select
                     value={form.watch('time_format')}
-                    onValueChange={(value) =>
-                      form.setValue('time_format', value as '12h' | '24h')
-                    }
+                    onValueChange={(value) => form.setValue('time_format', value as '12h' | '24h')}
                   >
                     <SelectTrigger
                       id="time_format"
-                      className={
-                        form.formState.errors.time_format ? 'border-destructive' : ''
-                      }
+                      className={form.formState.errors.time_format ? 'border-destructive' : ''}
                     >
                       <SelectValue placeholder="Select time format" />
                     </SelectTrigger>
@@ -359,9 +341,7 @@ const AdminSettings = () => {
                 >
                   <SelectTrigger
                     id="default_language"
-                    className={
-                      form.formState.errors.default_language ? 'border-destructive' : ''
-                    }
+                    className={form.formState.errors.default_language ? 'border-destructive' : ''}
                   >
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
@@ -414,9 +394,7 @@ const AdminSettings = () => {
                   placeholder="Brief description of the system..."
                   rows={4}
                   {...form.register('system_description')}
-                  className={
-                    form.formState.errors.system_description ? 'border-destructive' : ''
-                  }
+                  className={form.formState.errors.system_description ? 'border-destructive' : ''}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Optional description that may be displayed to users
