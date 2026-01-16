@@ -53,7 +53,7 @@ const Profile = () => {
         phone: profile.phone || '',
       });
     }
-  }, [profile]);
+  }, [profile, profileForm]);
 
   const onProfileSubmit = async (data: ProfileFormData) => {
     setIsUpdatingProfile(true);

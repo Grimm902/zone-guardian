@@ -9,6 +9,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
  * Custom render function that includes all providers
  * Use this instead of the default render from @testing-library/react
  */
+// eslint-disable-next-line react-refresh/only-export-components
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -39,5 +40,7 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
 const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) =>
   render(ui, { wrapper: AllTheProviders, ...options });
 
+/* eslint-disable react-refresh/only-export-components */
 export * from '@testing-library/react';
 export { customRender as render };
+/* eslint-enable react-refresh/only-export-components */
