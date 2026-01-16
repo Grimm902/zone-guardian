@@ -32,7 +32,9 @@ vi.mock('sonner', () => ({
 // Mock LoadingSpinner
 vi.mock('@/components/ui/loading-spinner', () => ({
   LoadingSpinner: ({ size, text }: { size?: string; text?: string }) => (
-    <div data-testid="loading-spinner" data-size={size} data-text={text} />
+    <div data-testid="loading-spinner" data-size={size} data-text={text}>
+      {text && <p>{text}</p>}
+    </div>
   ),
 }));
 
@@ -117,26 +119,43 @@ describe('AdminSettings', () => {
 
     render(<AdminSettings />);
 
+    // Wait for form to be populated with all values
+    await waitFor(() => {
+      expect(screen.getByDisplayValue(mockSettings.organization_name)).toBeInTheDocument();
+      expect(screen.getByDisplayValue(mockSettings.timezone)).toBeInTheDocument();
+    });
+
     const organizationInput = screen.getByLabelText(/organization name/i);
     const saveButton = screen.getByRole('button', { name: /save settings/i });
 
+    // Clear and type new value
     await user.clear(organizationInput);
     await user.type(organizationInput, 'Updated Organization');
+
+    // Wait a bit for React Hook Form to update
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Submit the form
     await user.click(saveButton);
 
-    await waitFor(() => {
-      expect(mockMutateAsync).toHaveBeenCalledWith({
-        organization_name: 'Updated Organization',
-        contact_email: mockSettings.contact_email,
-        contact_phone: mockSettings.contact_phone,
-        contact_address: mockSettings.contact_address,
-        timezone: mockSettings.timezone,
-        date_format: mockSettings.date_format,
-        time_format: mockSettings.time_format,
-        logo_url: mockSettings.logo_url,
-        default_language: mockSettings.default_language,
-        system_description: mockSettings.system_description,
-      });
+    await waitFor(
+      () => {
+        expect(mockMutateAsync).toHaveBeenCalled();
+      },
+      { timeout: 5000 }
+    );
+
+    expect(mockMutateAsync).toHaveBeenCalledWith({
+      organization_name: 'Updated Organization',
+      contact_email: mockSettings.contact_email,
+      contact_phone: mockSettings.contact_phone,
+      contact_address: mockSettings.contact_address,
+      timezone: mockSettings.timezone,
+      date_format: mockSettings.date_format,
+      time_format: mockSettings.time_format,
+      logo_url: mockSettings.logo_url,
+      default_language: mockSettings.default_language,
+      system_description: mockSettings.system_description,
     });
 
     await waitFor(() => {
@@ -151,16 +170,31 @@ describe('AdminSettings', () => {
 
     render(<AdminSettings />);
 
+    // Wait for form to be populated
+    await waitFor(() => {
+      expect(screen.getByDisplayValue(mockSettings.organization_name)).toBeInTheDocument();
+      expect(screen.getByDisplayValue(mockSettings.timezone)).toBeInTheDocument();
+    });
+
     const organizationInput = screen.getByLabelText(/organization name/i);
     const saveButton = screen.getByRole('button', { name: /save settings/i });
 
     await user.clear(organizationInput);
     await user.type(organizationInput, 'Updated Organization');
+
+    // Wait a bit for React Hook Form to update
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     await user.click(saveButton);
 
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Update failed');
-    });
+    await waitFor(
+      () => {
+        expect(toast.error).toHaveBeenCalled();
+      },
+      { timeout: 5000 }
+    );
+
+    expect(toast.error).toHaveBeenCalledWith('Update failed');
   });
 
   it('should disable submit button while updating', async () => {
@@ -236,16 +270,31 @@ describe('AdminSettings', () => {
 
     render(<AdminSettings />);
 
+    // Wait for form to be populated
+    await waitFor(() => {
+      expect(screen.getByDisplayValue(mockSettings.organization_name)).toBeInTheDocument();
+    });
+
     const emailInput = screen.getByLabelText(/contact email/i);
     const saveButton = screen.getByRole('button', { name: /save settings/i });
 
+    // Clear and type invalid email
     await user.clear(emailInput);
     await user.type(emailInput, 'invalid-email');
+    // Blur the field to trigger validation
+    await user.tab();
+    // Try to submit - this should trigger validation
     await user.click(saveButton);
 
-    await waitFor(() => {
-      expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
+
+    // Form should not submit with invalid email
+    expect(mockMutateAsync).not.toHaveBeenCalled();
   });
 
   it('should handle timezone selection', async () => {
