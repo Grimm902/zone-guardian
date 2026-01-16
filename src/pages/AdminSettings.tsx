@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,20 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  systemSettingsSchema,
-  type SystemSettingsFormData,
-} from '@/lib/validations';
+import { systemSettingsSchema, type SystemSettingsFormData } from '@/lib/validations';
 import { useSystemSettings, useUpdateSystemSettings } from '@/hooks/queries/useSystemSettings';
-import {
-  Settings,
-  Building2,
-  Globe,
-  Image,
-  Save,
-  AlertCircle,
-  RefreshCw,
-} from 'lucide-react';
+import { Settings, Building2, Globe, Image, Save, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Common timezones
@@ -77,6 +66,7 @@ const AdminSettings = () => {
 
   const form = useForm<SystemSettingsFormData>({
     resolver: zodResolver(systemSettingsSchema),
+    mode: 'onSubmit',
     defaultValues: {
       organization_name: '',
       contact_email: '',
@@ -107,7 +97,8 @@ const AdminSettings = () => {
         system_description: settings.system_description || '',
       });
     }
-  }, [settings, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings]);
 
   const onSubmit = async (data: SystemSettingsFormData) => {
     try {
@@ -200,9 +191,7 @@ const AdminSettings = () => {
                 <Input
                   id="organization_name"
                   {...form.register('organization_name')}
-                  className={
-                    form.formState.errors.organization_name ? 'border-destructive' : ''
-                  }
+                  className={form.formState.errors.organization_name ? 'border-destructive' : ''}
                 />
               </FormField>
 
@@ -266,26 +255,27 @@ const AdminSettings = () => {
                 error={form.formState.errors.timezone?.message}
                 required
               >
-                <Select
-                  value={form.watch('timezone')}
-                  onValueChange={(value) => form.setValue('timezone', value)}
-                >
-                  <SelectTrigger
-                    id="timezone"
-                    className={
-                      form.formState.errors.timezone ? 'border-destructive' : ''
-                    }
-                  >
-                    <SelectValue placeholder="Select timezone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIMEZONES.map((tz) => (
-                      <SelectItem key={tz} value={tz}>
-                        {tz}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="timezone"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger
+                        id="timezone"
+                        className={form.formState.errors.timezone ? 'border-destructive' : ''}
+                      >
+                        <SelectValue placeholder="Select timezone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIMEZONES.map((tz) => (
+                          <SelectItem key={tz} value={tz}>
+                            {tz}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </FormField>
 
               <div className="grid gap-6 md:grid-cols-2">
@@ -295,28 +285,32 @@ const AdminSettings = () => {
                   error={form.formState.errors.date_format?.message}
                   required
                 >
-                  <Select
-                    value={form.watch('date_format')}
-                    onValueChange={(value) =>
-                      form.setValue('date_format', value as 'MM/dd/yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd')
-                    }
-                  >
-                    <SelectTrigger
-                      id="date_format"
-                      className={
-                        form.formState.errors.date_format ? 'border-destructive' : ''
-                      }
-                    >
-                      <SelectValue placeholder="Select date format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DATE_FORMATS.map((format) => (
-                        <SelectItem key={format.value} value={format.value}>
-                          {format.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="date_format"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={(value) =>
+                          field.onChange(value as 'MM/dd/yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd')
+                        }
+                      >
+                        <SelectTrigger
+                          id="date_format"
+                          className={form.formState.errors.date_format ? 'border-destructive' : ''}
+                        >
+                          <SelectValue placeholder="Select date format" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DATE_FORMATS.map((format) => (
+                            <SelectItem key={format.value} value={format.value}>
+                              {format.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </FormField>
 
                 <FormField
@@ -325,25 +319,27 @@ const AdminSettings = () => {
                   error={form.formState.errors.time_format?.message}
                   required
                 >
-                  <Select
-                    value={form.watch('time_format')}
-                    onValueChange={(value) =>
-                      form.setValue('time_format', value as '12h' | '24h')
-                    }
-                  >
-                    <SelectTrigger
-                      id="time_format"
-                      className={
-                        form.formState.errors.time_format ? 'border-destructive' : ''
-                      }
-                    >
-                      <SelectValue placeholder="Select time format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12h">12-hour (AM/PM)</SelectItem>
-                      <SelectItem value="24h">24-hour</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="time_format"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={(value) => field.onChange(value as '12h' | '24h')}
+                      >
+                        <SelectTrigger
+                          id="time_format"
+                          className={form.formState.errors.time_format ? 'border-destructive' : ''}
+                        >
+                          <SelectValue placeholder="Select time format" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="12h">12-hour (AM/PM)</SelectItem>
+                          <SelectItem value="24h">24-hour</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </FormField>
               </div>
 
@@ -353,26 +349,29 @@ const AdminSettings = () => {
                 error={form.formState.errors.default_language?.message}
                 required
               >
-                <Select
-                  value={form.watch('default_language')}
-                  onValueChange={(value) => form.setValue('default_language', value)}
-                >
-                  <SelectTrigger
-                    id="default_language"
-                    className={
-                      form.formState.errors.default_language ? 'border-destructive' : ''
-                    }
-                  >
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="default_language"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger
+                        id="default_language"
+                        className={
+                          form.formState.errors.default_language ? 'border-destructive' : ''
+                        }
+                      >
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGES.map((lang) => (
+                          <SelectItem key={lang.value} value={lang.value}>
+                            {lang.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </FormField>
             </CardContent>
           </Card>
@@ -414,9 +413,7 @@ const AdminSettings = () => {
                   placeholder="Brief description of the system..."
                   rows={4}
                   {...form.register('system_description')}
-                  className={
-                    form.formState.errors.system_description ? 'border-destructive' : ''
-                  }
+                  className={form.formState.errors.system_description ? 'border-destructive' : ''}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Optional description that may be displayed to users
