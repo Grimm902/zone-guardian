@@ -1,6 +1,9 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@/test/utils';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
@@ -41,6 +44,23 @@ vi.mock('next-themes', () => ({
     resolvedTheme: 'light',
   }),
 }));
+
+// Simple wrapper for AuthContext tests (without AuthProvider since we're testing it)
+const TestWrapper = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>{children}</BrowserRouter>
+    </QueryClientProvider>
+  );
+};
+
+// Custom render for AuthContext tests
+const renderWithProviders = (ui: React.ReactElement) => {
+  return render(ui, { wrapper: TestWrapper });
+};
 
 // Test component that uses useAuth
 const TestComponent = () => {
@@ -110,7 +130,7 @@ describe('AuthContext', () => {
         error: null,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -135,7 +155,7 @@ describe('AuthContext', () => {
         error: null,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -164,7 +184,7 @@ describe('AuthContext', () => {
         error: { message: 'Profile not found' },
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -199,7 +219,7 @@ describe('AuthContext', () => {
         error: null,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -233,7 +253,7 @@ describe('AuthContext', () => {
         error: signInError,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -265,7 +285,7 @@ describe('AuthContext', () => {
         error: null,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -305,7 +325,7 @@ describe('AuthContext', () => {
         error: signUpError,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -341,7 +361,7 @@ describe('AuthContext', () => {
         error: null,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -379,7 +399,7 @@ describe('AuthContext', () => {
           error: null,
         });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -406,7 +426,7 @@ describe('AuthContext', () => {
         error: null,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -430,7 +450,7 @@ describe('AuthContext', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       expect(() => {
-        render(<TestComponent />);
+        renderWithProviders(<TestComponent />);
       }).toThrow('useAuth must be used within an AuthProvider');
 
       consoleSpy.mockRestore();
@@ -458,7 +478,7 @@ describe('AuthContext', () => {
         error: null,
       });
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
@@ -498,7 +518,7 @@ describe('AuthContext', () => {
         }
       );
 
-      render(
+      renderWithProviders(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
