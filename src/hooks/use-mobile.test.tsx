@@ -130,9 +130,12 @@ describe('useIsMobile', () => {
       callback();
     });
 
-    await waitFor(() => {
-      expect(result.current).toBe(true);
-    }, { timeout: 1000 });
+    await waitFor(
+      () => {
+        expect(result.current).toBe(true);
+      },
+      { timeout: 1000 }
+    );
   });
 
   it('should handle initial undefined state', () => {

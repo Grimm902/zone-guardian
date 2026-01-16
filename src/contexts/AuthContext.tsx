@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType, Profile, UserRole } from '@/types/auth';
@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -55,21 +56,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const loadProfile = async (userId: string, setLoadingState: boolean = true): Promise<void> => {
-    try {
-      const profileData = await fetchProfile(userId);
-      if (profileData) {
-        setProfile(profileData);
-        setRole(profileData.role);
+  const loadProfile = useCallback(
+    async (userId: string, setLoadingState: boolean = true): Promise<void> => {
+      try {
+        const profileData = await fetchProfile(userId);
+        if (profileData) {
+          setProfile(profileData);
+          setRole(profileData.role);
+        }
+      } catch (error) {
+        logger.error('Error loading profile', error);
+      } finally {
+        if (setLoadingState) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      logger.error('Error loading profile', error);
-    } finally {
-      if (setLoadingState) {
-        setLoading(false);
-      }
-    }
-  };
+    },
+    []
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -131,7 +135,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loadProfile]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

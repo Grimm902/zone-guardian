@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,7 +15,10 @@ import { mockProfile, mockProfiles, mockUser } from '@/test/fixtures';
 
 // Mock dependencies
 vi.mock('@/services/supabase');
-vi.mock('@/contexts/AuthContext');
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: vi.fn(),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 vi.mock('@/lib/logger', () => ({
   logger: {
     error: vi.fn(),
