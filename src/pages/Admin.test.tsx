@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@/test/utils';
 import Admin from './Admin';
@@ -5,7 +6,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { mockProfile } from '@/test/fixtures';
 
 // Mock dependencies
-vi.mock('@/contexts/AuthContext');
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: vi.fn(),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+// Mock next-themes to avoid matchMedia issues
+vi.mock('next-themes', () => ({
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useTheme: () => ({
+    theme: 'light',
+    setTheme: vi.fn(),
+    resolvedTheme: 'light',
+  }),
+}));
 
 describe('Admin', () => {
   beforeEach(() => {

@@ -14,32 +14,44 @@ afterEach(() => {
 // This must be set up before any tests run to ensure next-themes works correctly
 // next-themes uses matchMedia to detect system theme preferences
 const createMatchMediaMock = (query: string) => {
+  const listeners: Array<() => void> = [];
   const mediaQueryList = {
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(), // deprecated but still used by next-themes
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
+    addListener: vi.fn((callback: () => void) => {
+      listeners.push(callback);
+    }),
+    removeListener: vi.fn((callback: () => void) => {
+      const index = listeners.indexOf(callback);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    }),
+    addEventListener: vi.fn((event: string, callback: () => void) => {
+      if (event === 'change') {
+        listeners.push(callback);
+      }
+    }),
+    removeEventListener: vi.fn((event: string, callback: () => void) => {
+      if (event === 'change') {
+        const index = listeners.indexOf(callback);
+        if (index > -1) {
+          listeners.splice(index, 1);
+        }
+      }
+    }),
     dispatchEvent: vi.fn(),
   };
   return mediaQueryList;
 };
 
 // Ensure matchMedia is always available and returns a valid object
-if (typeof window !== 'undefined' && !window.matchMedia) {
+if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
     configurable: true,
-    value: vi.fn().mockImplementation(createMatchMediaMock),
-  });
-} else if (typeof window !== 'undefined') {
-  // If matchMedia already exists, replace it with our mock
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    configurable: true,
-    value: vi.fn().mockImplementation(createMatchMediaMock),
+    value: vi.fn((query: string) => createMatchMediaMock(query)),
   });
 }
 

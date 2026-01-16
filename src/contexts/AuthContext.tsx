@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       }
     },
-    [],
+    []
   );
 
   useEffect(() => {

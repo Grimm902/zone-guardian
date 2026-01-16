@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@/test/utils';
 import { AuthProvider, useAuth } from './AuthContext';
@@ -29,6 +30,16 @@ vi.mock('@/lib/logger', () => ({
     warn: vi.fn(),
     debug: vi.fn(),
   },
+}));
+
+// Mock next-themes to avoid matchMedia issues in tests
+vi.mock('next-themes', () => ({
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useTheme: () => ({
+    theme: 'light',
+    setTheme: vi.fn(),
+    resolvedTheme: 'light',
+  }),
 }));
 
 // Test component that uses useAuth
@@ -83,11 +94,9 @@ describe('AuthContext', () => {
     mockOnAuthStateChange.mockReturnValue({
       data: { subscription: { unsubscribe: vi.fn() } },
     });
-    (supabase.auth.onAuthStateChange as ReturnType<typeof vi.fn>).mockImplementation(
-      (callback) => {
-        return mockOnAuthStateChange();
-      }
-    );
+    (supabase.auth.onAuthStateChange as ReturnType<typeof vi.fn>).mockImplementation((callback) => {
+      return mockOnAuthStateChange();
+    });
   });
 
   afterEach(() => {
