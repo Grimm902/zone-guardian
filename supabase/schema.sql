@@ -213,12 +213,19 @@ CREATE POLICY "Allow insert for authenticated users"
 -- Drop existing policies if they exist (idempotent)
 DROP POLICY IF EXISTS "TCM can view settings" ON public.system_settings;
 DROP POLICY IF EXISTS "TCM can update settings" ON public.system_settings;
+DROP POLICY IF EXISTS "TCM can insert settings" ON public.system_settings;
 
 -- TCM can view settings
 CREATE POLICY "TCM can view settings"
   ON public.system_settings
   FOR SELECT
   USING (public.is_tcm(auth.uid()));
+
+-- TCM can insert settings
+CREATE POLICY "TCM can insert settings"
+  ON public.system_settings
+  FOR INSERT
+  WITH CHECK (public.is_tcm(auth.uid()));
 
 -- TCM can update settings
 CREATE POLICY "TCM can update settings"
