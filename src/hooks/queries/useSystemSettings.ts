@@ -26,7 +26,8 @@ export const useSystemSettings = () => {
           isPermissionError,
           isInitializationError,
           // Note: missing data errors should be rare now since we auto-create
-          isMissingData: error.message?.includes('not found') || error.message?.includes('does not exist'),
+          isMissingData:
+            error.message?.includes('not found') || error.message?.includes('does not exist'),
         });
         throw error;
       }
@@ -77,9 +78,7 @@ export const useUpdateSystemSettings = () => {
         throw error;
       }
       if (!data) {
-        const error = new Error(
-          'Failed to update system settings. No data was returned.'
-        );
+        const error = new Error('Failed to update system settings. No data was returned.');
         logger.error('System settings update returned no data', {
           updates: Object.keys(updates),
         });

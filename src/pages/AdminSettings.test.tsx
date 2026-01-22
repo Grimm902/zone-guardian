@@ -109,7 +109,7 @@ describe('AdminSettings', () => {
 
     render(<AdminSettings />);
 
-    expect(screen.getByText(/failed to load system settings/i)).toBeInTheDocument();
+    expect(screen.getByText(/failed to load settings/i)).toBeInTheDocument();
   });
 
   it('should display all form sections', () => {

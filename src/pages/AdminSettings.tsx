@@ -193,8 +193,8 @@ const AdminSettings = () => {
                   <p className="font-semibold mb-2">Failed to Initialize Settings</p>
                   <p>
                     System settings could not be created automatically. This may be due to a
-                    permission issue or database configuration problem. Please contact an administrator
-                    to resolve this.
+                    permission issue or database configuration problem. Please contact an
+                    administrator to resolve this.
                   </p>
                 </>
               ) : isMissingData ? (
@@ -210,7 +210,8 @@ const AdminSettings = () => {
                 <>
                   <p className="font-semibold mb-2">Failed to Load Settings</p>
                   <p>
-                    {errorMessage || 'An unexpected error occurred. Please try refreshing the page.'}
+                    {errorMessage ||
+                      'An unexpected error occurred. Please try refreshing the page.'}
                   </p>
                 </>
               )}
@@ -218,11 +219,7 @@ const AdminSettings = () => {
           </Alert>
           {!isPermissionError && (
             <div className="flex justify-end">
-              <Button
-                variant="outline"
-                onClick={() => window.location.reload()}
-                className="gap-2"
-              >
+              <Button variant="outline" onClick={() => window.location.reload()} className="gap-2">
                 <RefreshCw className="h-4 w-4" />
                 Refresh Page
               </Button>

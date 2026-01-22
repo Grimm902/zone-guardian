@@ -79,11 +79,7 @@ export const systemSettingsSchema = z.object({
   organization_name: z.string().min(1, 'Organization name is required').max(100),
   contact_email: optionalEmailSchema,
   contact_phone: phoneSchema,
-  contact_address: z
-    .string()
-    .max(500, 'Address is too long')
-    .optional()
-    .or(z.literal('')),
+  contact_address: z.string().max(500, 'Address is too long').optional().or(z.literal('')),
   timezone: z.string().min(1, 'Timezone is required'),
   date_format: z.enum(['MM/dd/yyyy', 'dd/MM/yyyy', 'yyyy-MM-dd'], {
     errorMap: () => ({ message: 'Invalid date format' }),
@@ -91,11 +87,7 @@ export const systemSettingsSchema = z.object({
   time_format: z.enum(['12h', '24h']),
   logo_url: optionalUrlSchema,
   default_language: z.string().min(2).max(5),
-  system_description: z
-    .string()
-    .max(1000, 'Description is too long')
-    .optional()
-    .or(z.literal('')),
+  system_description: z.string().max(1000, 'Description is too long').optional().or(z.literal('')),
 });
 
 // Type exports
