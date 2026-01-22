@@ -72,13 +72,29 @@ const AdminUsers = () => {
     setUpdatingUserId(userId);
 
     try {
-      const { error: updateError } = await supabase
+      const { data, error: updateError } = await supabase
         .from('profiles')
         .update({ role: newRole })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select()
+        .single();
 
       if (updateError) {
+        // Check for RLS policy errors
+        if (
+          updateError.message?.includes('row-level security') ||
+          updateError.message?.includes('permission denied') ||
+          updateError.code === '42501'
+        ) {
+          throw new Error(
+            'You do not have permission to update user roles. Only Traffic Control Managers (TCM) can modify roles.'
+          );
+        }
         throw updateError;
+      }
+
+      if (!data) {
+        throw new Error('Failed to update role. No data was returned.');
       }
 
       setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)));

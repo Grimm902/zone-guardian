@@ -102,18 +102,21 @@ const AdminSettings = () => {
 
   const onSubmit = async (data: SystemSettingsFormData) => {
     try {
-      await updateSettings.mutateAsync({
+      // Convert empty strings to null for optional fields
+      const updates = {
         organization_name: data.organization_name,
-        contact_email: data.contact_email || null,
-        contact_phone: data.contact_phone || null,
-        contact_address: data.contact_address || null,
+        contact_email: data.contact_email?.trim() || null,
+        contact_phone: data.contact_phone?.trim() || null,
+        contact_address: data.contact_address?.trim() || null,
         timezone: data.timezone,
         date_format: data.date_format,
         time_format: data.time_format,
-        logo_url: data.logo_url || null,
+        logo_url: data.logo_url?.trim() || null,
         default_language: data.default_language,
-        system_description: data.system_description || null,
-      });
+        system_description: data.system_description?.trim() || null,
+      };
+
+      await updateSettings.mutateAsync(updates);
       toast.success('System settings updated successfully');
     } catch (err) {
       const error = err as Error;
@@ -149,14 +152,83 @@ const AdminSettings = () => {
   }
 
   if (error) {
+    // Extract error message safely
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : 'An unexpected error occurred';
+
+    // Determine error type and show appropriate message
+    const isPermissionError =
+      errorMessage.includes('permission') ||
+      errorMessage.includes('TCM') ||
+      errorMessage.includes('Traffic Control Manager');
+    const isInitializationError =
+      errorMessage.includes('create') ||
+      errorMessage.includes('initialize') ||
+      errorMessage.includes('initialization');
+    const isMissingData =
+      (errorMessage.includes('not found') || errorMessage.includes('does not exist')) &&
+      !isInitializationError;
+
     return (
       <AppLayout>
-        <Alert variant="destructive" className="max-w-2xl mx-auto">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Failed to load system settings. Please try refreshing the page.
-          </AlertDescription>
-        </Alert>
+        <div className="max-w-2xl mx-auto space-y-4 animate-fade-in">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {isPermissionError ? (
+                <>
+                  <p className="font-semibold mb-2">Access Denied</p>
+                  <p>
+                    You do not have permission to view system settings. Only Traffic Control
+                    Managers (TCM) can access this page. If you believe this is an error, please
+                    contact your administrator.
+                  </p>
+                </>
+              ) : isInitializationError ? (
+                <>
+                  <p className="font-semibold mb-2">Failed to Initialize Settings</p>
+                  <p>
+                    System settings could not be created automatically. This may be due to a
+                    permission issue or database configuration problem. Please contact an administrator
+                    to resolve this.
+                  </p>
+                </>
+              ) : isMissingData ? (
+                <>
+                  <p className="font-semibold mb-2">Settings Not Found</p>
+                  <p>
+                    System settings could not be found in the database. The system attempted to
+                    create them automatically but failed. Please contact an administrator to resolve
+                    this.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold mb-2">Failed to Load Settings</p>
+                  <p>
+                    {errorMessage || 'An unexpected error occurred. Please try refreshing the page.'}
+                  </p>
+                </>
+              )}
+            </AlertDescription>
+          </Alert>
+          {!isPermissionError && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh Page
+              </Button>
+            </div>
+          )}
+        </div>
       </AppLayout>
     );
   }

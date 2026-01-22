@@ -68,16 +68,138 @@ export const profileService = {
  */
 export const settingsService = {
   /**
+   * Creates/initializes system settings with default values
+   */
+  async create(): Promise<{ data: SystemSettings | null; error: Error | null }> {
+    const defaultSettings = {
+      id: '00000000-0000-0000-0000-000000000000',
+      organization_name: 'Zone Guardian',
+      contact_email: null,
+      contact_phone: null,
+      contact_address: null,
+      timezone: 'UTC',
+      date_format: 'MM/dd/yyyy',
+      time_format: '12h' as const,
+      logo_url: null,
+      default_language: 'en',
+      system_description: null,
+    };
+
+    const { data, error } = await supabase
+      .from('system_settings')
+      .insert(defaultSettings)
+      .select()
+      .single();
+
+    if (error) {
+      // Check if it's a duplicate key error (row already exists)
+      if (error.code === '23505' || error.message?.includes('duplicate key')) {
+        // Row was created by another request, try to fetch it
+        return this.get();
+      }
+
+      // Check if it's an RLS policy error
+      if (
+        error.message?.includes('row-level security') ||
+        error.message?.includes('permission denied') ||
+        error.code === '42501' ||
+        error.code === 'PGRST301'
+      ) {
+        return {
+          data: null,
+          error: new Error(
+            'You do not have permission to create system settings. Only Traffic Control Managers (TCM) can initialize settings.'
+          ),
+        };
+      }
+
+      return handleSupabaseError(null, error);
+    }
+
+    return { data: data as SystemSettings, error: null };
+  },
+
+  /**
    * Fetches system settings (singleton)
    */
   async get(): Promise<{ data: SystemSettings | null; error: Error | null }> {
+    // First, try to check if we can access the settings at all
+    // This helps distinguish between RLS blocking and missing data
+    const { data: checkData, error: checkError } = await supabase
+      .from('system_settings')
+      .select('id')
+      .eq('id', '00000000-0000-0000-0000-000000000000')
+      .maybeSingle();
+
+    // If there's an error, it's likely an RLS policy issue
+    if (checkError) {
+      // Check if it's an RLS policy error
+      if (
+        checkError.message?.includes('row-level security') ||
+        checkError.message?.includes('permission denied') ||
+        checkError.code === '42501' ||
+        checkError.code === 'PGRST301'
+      ) {
+        return {
+          data: null,
+          error: new Error(
+            'You do not have permission to view system settings. Only Traffic Control Managers (TCM) can access settings.'
+          ),
+        };
+      }
+      return handleSupabaseError(null, checkError);
+    }
+
+    // If checkData is null but no error, the row might not exist
+    // But we should still try to fetch the full data in case the select was blocked
     const { data, error } = await supabase
       .from('system_settings')
       .select('*')
       .eq('id', '00000000-0000-0000-0000-000000000000')
       .maybeSingle();
 
-    return handleSupabaseError(data as SystemSettings | null, error);
+    if (error) {
+      // Check if it's an RLS policy error
+      if (
+        error.message?.includes('row-level security') ||
+        error.message?.includes('permission denied') ||
+        error.code === '42501' ||
+        error.code === 'PGRST301'
+      ) {
+        return {
+          data: null,
+          error: new Error(
+            'You do not have permission to view system settings. Only Traffic Control Managers (TCM) can access settings.'
+          ),
+        };
+      }
+      return handleSupabaseError(null, error);
+    }
+
+    // If we got past the check but data is null, the row doesn't exist
+    // Try to create it with default values
+    if (!data && !checkData) {
+      // Attempt to create default settings
+      const createResult = await this.create();
+      if (createResult.error) {
+        // If creation fails, return the error
+        return createResult;
+      }
+      // Return the newly created settings
+      return createResult;
+    }
+
+    // If checkData exists but full data is null, it's likely an RLS issue on specific columns
+    if (!data && checkData) {
+      return {
+        data: null,
+        error: new Error(
+          'You do not have permission to view system settings. Only Traffic Control Managers (TCM) can access settings.'
+        ),
+      };
+    }
+
+    return { data: data as SystemSettings, error: null };
   },
 
   /**
@@ -86,14 +208,62 @@ export const settingsService = {
   async update(
     updates: Partial<Omit<SystemSettings, 'id' | 'created_at' | 'updated_at'>>
   ): Promise<{ data: SystemSettings | null; error: Error | null }> {
+    // First, verify we can access the settings (check RLS permissions)
+    const { data: existingSettings, error: readError } = await supabase
+      .from('system_settings')
+      .select('id')
+      .eq('id', '00000000-0000-0000-0000-000000000000')
+      .maybeSingle();
+
+    if (readError) {
+      return handleSupabaseError(null, readError);
+    }
+
+    if (!existingSettings) {
+      return {
+        data: null,
+        error: new Error(
+          'System settings not found. You may not have permission to access settings, or the settings row does not exist.'
+        ),
+      };
+    }
+
+    // Perform the update
     const { data, error } = await supabase
       .from('system_settings')
       .update(updates)
       .eq('id', '00000000-0000-0000-0000-000000000000')
       .select()
-      .single();
+      .maybeSingle();
 
-    return handleSupabaseError(data as SystemSettings | null, error);
+    if (error) {
+      // Check if it's an RLS policy error
+      if (
+        error.message?.includes('row-level security') ||
+        error.message?.includes('permission denied') ||
+        error.code === '42501'
+      ) {
+        return {
+          data: null,
+          error: new Error(
+            'You do not have permission to update system settings. Only Traffic Control Managers (TCM) can modify settings.'
+          ),
+        };
+      }
+      return handleSupabaseError(null, error);
+    }
+
+    // If no data returned, the update didn't affect any rows (shouldn't happen, but handle it)
+    if (!data) {
+      return {
+        data: null,
+        error: new Error(
+          'Failed to update system settings. The update did not affect any rows. You may not have permission to update settings.'
+        ),
+      };
+    }
+
+    return { data: data as SystemSettings, error: null };
   },
 };
 

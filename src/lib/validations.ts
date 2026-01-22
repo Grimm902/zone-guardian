@@ -63,19 +63,39 @@ export const passwordUpdateSchema = z
     path: ['confirmPassword'],
   });
 
+// Helper schema for optional email (allows empty string or valid email)
+const optionalEmailSchema = z.preprocess(
+  (val) => (val === null || val === undefined ? '' : val),
+  z.union([z.string().email('Invalid email address'), z.literal('')])
+);
+
+// Helper schema for optional URL (allows empty string or valid URL)
+const optionalUrlSchema = z.preprocess(
+  (val) => (val === null || val === undefined ? '' : val),
+  z.union([z.string().url('Invalid URL'), z.literal('')])
+);
+
 export const systemSettingsSchema = z.object({
   organization_name: z.string().min(1, 'Organization name is required').max(100),
-  contact_email: z.string().email('Invalid email address').optional().or(z.literal('')),
+  contact_email: optionalEmailSchema,
   contact_phone: phoneSchema,
-  contact_address: z.string().max(500, 'Address is too long').optional().or(z.literal('')),
+  contact_address: z
+    .string()
+    .max(500, 'Address is too long')
+    .optional()
+    .or(z.literal('')),
   timezone: z.string().min(1, 'Timezone is required'),
   date_format: z.enum(['MM/dd/yyyy', 'dd/MM/yyyy', 'yyyy-MM-dd'], {
     errorMap: () => ({ message: 'Invalid date format' }),
   }),
   time_format: z.enum(['12h', '24h']),
-  logo_url: z.string().url('Invalid URL').optional().or(z.literal('')),
+  logo_url: optionalUrlSchema,
   default_language: z.string().min(2).max(5),
-  system_description: z.string().max(1000, 'Description is too long').optional().or(z.literal('')),
+  system_description: z
+    .string()
+    .max(1000, 'Description is too long')
+    .optional()
+    .or(z.literal('')),
 });
 
 // Type exports
