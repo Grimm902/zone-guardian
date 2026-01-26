@@ -24,12 +24,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useEquipmentById, useUpdateEquipment, useDeleteEquipment } from '@/hooks/queries/useInventory';
-import { useCheckouts, useCheckoutEquipment, useCheckinEquipment } from '@/hooks/queries/useInventory';
+import {
+  useEquipmentById,
+  useUpdateEquipment,
+  useDeleteEquipment,
+} from '@/hooks/queries/useInventory';
+import {
+  useCheckouts,
+  useCheckoutEquipment,
+  useCheckinEquipment,
+} from '@/hooks/queries/useInventory';
 import { useMaintenance, useCreateMaintenance } from '@/hooks/queries/useInventory';
 import { useAuth } from '@/contexts/AuthContext';
 import { canManageInventory, canCheckoutEquipment } from '@/lib/permissions';
-import type { EquipmentItemFormData, EquipmentCheckoutFormData, EquipmentCheckinFormData, EquipmentMaintenanceFormData } from '@/types/inventory';
+import type {
+  EquipmentItemFormData,
+  EquipmentCheckoutFormData,
+  EquipmentCheckinFormData,
+  EquipmentMaintenanceFormData,
+} from '@/types/inventory';
 import {
   ArrowLeft,
   Edit,
@@ -71,6 +84,9 @@ const InventoryItem = () => {
   const canCheckout = canCheckoutEquipment(role);
 
   const activeCheckouts = checkouts?.filter((c) => !c.checked_in_at) || [];
+  const selectedCheckoutData = selectedCheckout
+    ? checkouts?.find((c) => c.id === selectedCheckout)
+    : null;
 
   const handleUpdateEquipment = async (data: EquipmentItemFormData) => {
     if (!id) return;
@@ -85,7 +101,9 @@ const InventoryItem = () => {
 
   const handleDeleteEquipment = async () => {
     if (!id) return;
-    if (!confirm('Are you sure you want to delete this equipment item? This action cannot be undone.')) {
+    if (
+      !confirm('Are you sure you want to delete this equipment item? This action cannot be undone.')
+    ) {
       return;
     }
     try {
@@ -207,9 +225,7 @@ const InventoryItem = () => {
               <MapPin className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {equipment.location?.name || 'Not assigned'}
-              </div>
+              <div className="text-2xl font-bold">{equipment.location?.name || 'Not assigned'}</div>
               {equipment.location && (
                 <p className="text-xs text-muted-foreground">{equipment.location.address}</p>
               )}
@@ -237,9 +253,7 @@ const InventoryItem = () => {
         <Tabs defaultValue="details" className="space-y-4">
           <TabsList>
             <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="checkouts">
-              Checkouts ({activeCheckouts.length})
-            </TabsTrigger>
+            <TabsTrigger value="checkouts">Checkouts ({activeCheckouts.length})</TabsTrigger>
             <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
           </TabsList>
 
@@ -456,14 +470,14 @@ const InventoryItem = () => {
         )}
 
         {/* Checkin Dialog */}
-        {canCheckout && selectedCheckout && (
+        {canCheckout && selectedCheckoutData && (
           <CheckinDialog
             open={isCheckinDialogOpen}
             onOpenChange={(open) => {
               setIsCheckinDialogOpen(open);
               if (!open) setSelectedCheckout(null);
             }}
-            checkout={checkouts?.find((c) => c.id === selectedCheckout)!}
+            checkout={selectedCheckoutData}
             onCheckin={handleCheckin}
             isLoading={checkinEquipment.isPending}
           />

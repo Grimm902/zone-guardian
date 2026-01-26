@@ -126,7 +126,11 @@ const Inventory = () => {
         </div>
 
         {/* Filters */}
-        <InventoryFilters filters={filters} onFiltersChange={setFilters} onClear={handleClearFilters} />
+        <InventoryFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onClear={handleClearFilters}
+        />
 
         {/* View Mode Toggle */}
         <div className="flex items-center justify-between">

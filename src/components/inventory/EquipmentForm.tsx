@@ -129,12 +129,7 @@ export const EquipmentForm = ({
           />
         </FormField>
 
-        <FormField
-          label="Name"
-          htmlFor="name"
-          error={form.formState.errors.name?.message}
-          required
-        >
+        <FormField label="Name" htmlFor="name" error={form.formState.errors.name?.message} required>
           <Input id="name" {...form.register('name')} />
         </FormField>
       </div>
@@ -149,11 +144,7 @@ export const EquipmentForm = ({
 
       <div className="grid gap-4 md:grid-cols-2">
         <FormField label="Code" htmlFor="code" error={form.formState.errors.code?.message}>
-          <Input
-            id="code"
-            placeholder="TC-12345 (optional)"
-            {...form.register('code')}
-          />
+          <Input id="code" placeholder="TC-12345 (optional)" {...form.register('code')} />
         </FormField>
 
         <FormField
@@ -171,13 +162,13 @@ export const EquipmentForm = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(['good', 'fair', 'damaged', 'needs_repair', 'retired'] as EquipmentCondition[]).map(
-                    (condition) => (
-                      <SelectItem key={condition} value={condition}>
-                        {CONDITION_LABELS[condition]}
-                      </SelectItem>
-                    )
-                  )}
+                  {(
+                    ['good', 'fair', 'damaged', 'needs_repair', 'retired'] as EquipmentCondition[]
+                  ).map((condition) => (
+                    <SelectItem key={condition} value={condition}>
+                      {CONDITION_LABELS[condition]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}

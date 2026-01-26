@@ -20,9 +20,7 @@ export const EquipmentCard = ({ item }: EquipmentCardProps) => {
             <CardTitle className="text-lg">{item.name}</CardTitle>
             <ConditionBadge condition={item.condition} />
           </div>
-          {item.category && (
-            <p className="text-sm text-muted-foreground">{item.category.name}</p>
-          )}
+          {item.category && <p className="text-sm text-muted-foreground">{item.category.name}</p>}
         </CardHeader>
         <CardContent className="space-y-4">
           {item.description && (
@@ -66,9 +64,7 @@ export const EquipmentCard = ({ item }: EquipmentCardProps) => {
             </div>
           )}
 
-          {item.code && (
-            <p className="text-xs text-muted-foreground">Code: {item.code}</p>
-          )}
+          {item.code && <p className="text-xs text-muted-foreground">Code: {item.code}</p>}
         </CardContent>
       </Card>
     </Link>

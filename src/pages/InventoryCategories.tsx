@@ -20,7 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/hooks/queries/useInventory';
+import {
+  useCategories,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+} from '@/hooks/queries/useInventory';
 import { useAuth } from '@/contexts/AuthContext';
 import { canManageInventory } from '@/lib/permissions';
 import { equipmentCategorySchema, type EquipmentCategoryFormData } from '@/lib/validations';
@@ -121,7 +126,9 @@ const InventoryCategories = () => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h1 className="text-3xl font-display font-bold text-foreground">Equipment Categories</h1>
+              <h1 className="text-3xl font-display font-bold text-foreground">
+                Equipment Categories
+              </h1>
               <p className="text-muted-foreground">Manage equipment categories</p>
             </div>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -207,10 +214,7 @@ const InventoryCategories = () => {
                 <DialogTitle>Add Category</DialogTitle>
                 <DialogDescription>Create a new equipment category</DialogDescription>
               </DialogHeader>
-              <form
-                onSubmit={createForm.handleSubmit(handleCreate)}
-                className="space-y-4"
-              >
+              <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
                 <FormField
                   label="Name"
                   htmlFor="name"
@@ -243,16 +247,16 @@ const InventoryCategories = () => {
           </Dialog>
 
           {/* Edit Dialog */}
-          <Dialog open={!!editingCategory} onOpenChange={(open) => !open && setEditingCategory(null)}>
+          <Dialog
+            open={!!editingCategory}
+            onOpenChange={(open) => !open && setEditingCategory(null)}
+          >
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Edit Category</DialogTitle>
                 <DialogDescription>Update category details</DialogDescription>
               </DialogHeader>
-              <form
-                onSubmit={editForm.handleSubmit(handleUpdate)}
-                className="space-y-4"
-              >
+              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-4">
                 <FormField
                   label="Name"
                   htmlFor="edit-name"
@@ -269,11 +273,7 @@ const InventoryCategories = () => {
                   <Textarea id="edit-description" {...editForm.register('description')} rows={3} />
                 </FormField>
                 <div className="flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setEditingCategory(null)}
-                  >
+                  <Button type="button" variant="outline" onClick={() => setEditingCategory(null)}>
                     Cancel
                   </Button>
                   <Button type="submit" disabled={updateCategory.isPending}>

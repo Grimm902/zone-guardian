@@ -29,7 +29,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useLocations, useCreateLocation, useUpdateLocation, useDeleteLocation } from '@/hooks/queries/useInventory';
+import {
+  useLocations,
+  useCreateLocation,
+  useUpdateLocation,
+  useDeleteLocation,
+} from '@/hooks/queries/useInventory';
 import { useAuth } from '@/contexts/AuthContext';
 import { canManageInventory } from '@/lib/permissions';
 import { locationSchema, type LocationFormData } from '@/lib/validations';
@@ -231,10 +236,7 @@ const InventoryLocations = () => {
                 <DialogTitle>Add Location</DialogTitle>
                 <DialogDescription>Create a new warehouse or job site</DialogDescription>
               </DialogHeader>
-              <form
-                onSubmit={createForm.handleSubmit(handleCreate)}
-                className="space-y-4"
-              >
+              <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
                 <FormField
                   label="Name"
                   htmlFor="name"
@@ -297,16 +299,16 @@ const InventoryLocations = () => {
           </Dialog>
 
           {/* Edit Dialog */}
-          <Dialog open={!!editingLocation} onOpenChange={(open) => !open && setEditingLocation(null)}>
+          <Dialog
+            open={!!editingLocation}
+            onOpenChange={(open) => !open && setEditingLocation(null)}
+          >
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Edit Location</DialogTitle>
                 <DialogDescription>Update location details</DialogDescription>
               </DialogHeader>
-              <form
-                onSubmit={editForm.handleSubmit(handleUpdate)}
-                className="space-y-4"
-              >
+              <form onSubmit={editForm.handleSubmit(handleUpdate)} className="space-y-4">
                 <FormField
                   label="Name"
                   htmlFor="edit-name"
@@ -353,11 +355,7 @@ const InventoryLocations = () => {
                   <Label htmlFor="edit-is_active">Active</Label>
                 </div>
                 <div className="flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setEditingLocation(null)}
-                  >
+                  <Button type="button" variant="outline" onClick={() => setEditingLocation(null)}>
                     Cancel
                   </Button>
                   <Button type="submit" disabled={updateLocation.isPending}>

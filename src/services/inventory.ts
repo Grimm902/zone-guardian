@@ -113,11 +113,7 @@ export const locationService = {
    * Fetches a location by ID
    */
   async getById(id: string): Promise<{ data: Location | null; error: Error | null }> {
-    const { data, error } = await supabase
-      .from('locations')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
+    const { data, error } = await supabase.from('locations').select('*').eq('id', id).maybeSingle();
 
     return handleSupabaseError(data as Location | null, error);
   },
@@ -125,12 +121,10 @@ export const locationService = {
   /**
    * Creates a new location
    */
-  async create(location: LocationFormData): Promise<{ data: Location | null; error: Error | null }> {
-    const { data, error } = await supabase
-      .from('locations')
-      .insert(location)
-      .select()
-      .single();
+  async create(
+    location: LocationFormData
+  ): Promise<{ data: Location | null; error: Error | null }> {
+    const { data, error } = await supabase.from('locations').insert(location).select().single();
 
     return handleSupabaseError(data as Location | null, error);
   },
@@ -257,7 +251,8 @@ export const equipmentService = {
       .from('equipment_items')
       .update({
         ...updates,
-        quantity_available: updates.quantity_total !== undefined ? finalQuantityAvailable : undefined,
+        quantity_available:
+          updates.quantity_total !== undefined ? finalQuantityAvailable : undefined,
       })
       .eq('id', id)
       .select('*, category:equipment_categories(*), location:locations(*)')

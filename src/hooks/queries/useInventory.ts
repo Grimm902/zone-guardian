@@ -93,7 +93,13 @@ export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<EquipmentCategoryFormData> }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<EquipmentCategoryFormData>;
+    }) => {
       const { data, error } = await categoryService.update(id, updates);
 
       if (error) {
@@ -297,7 +303,13 @@ export const useUpdateEquipment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<EquipmentItemFormData> }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<EquipmentItemFormData>;
+    }) => {
       const { data, error } = await equipmentService.update(id, updates);
 
       if (error) {

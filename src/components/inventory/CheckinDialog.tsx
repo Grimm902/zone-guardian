@@ -55,11 +55,21 @@ export const CheckinDialog = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <FormField label="Notes" htmlFor="notes" error={form.formState.errors.notes?.message}>
-            <Textarea id="notes" {...form.register('notes')} rows={3} placeholder="Optional notes..." />
+            <Textarea
+              id="notes"
+              {...form.register('notes')}
+              rows={3}
+              placeholder="Optional notes..."
+            />
           </FormField>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>

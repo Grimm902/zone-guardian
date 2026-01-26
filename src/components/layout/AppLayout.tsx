@@ -11,7 +11,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AlertTriangle, User, LogOut, Settings, Users, Home, Menu, X, Shield, Package } from 'lucide-react';
+import {
+  AlertTriangle,
+  User,
+  LogOut,
+  Settings,
+  Users,
+  Home,
+  Menu,
+  X,
+  Shield,
+  Package,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {

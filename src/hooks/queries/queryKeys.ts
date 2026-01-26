@@ -28,8 +28,7 @@ export const queryKeys = {
       detail: (id: string) => ['inventory', 'categories', id] as const,
     },
     locations: {
-      all: (includeInactive?: boolean) =>
-        ['inventory', 'locations', includeInactive] as const,
+      all: (includeInactive?: boolean) => ['inventory', 'locations', includeInactive] as const,
       detail: (id: string) => ['inventory', 'locations', id] as const,
     },
     equipment: {

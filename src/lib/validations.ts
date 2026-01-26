@@ -110,7 +110,10 @@ export const equipmentItemSchema = z.object({
   name: z.string().min(1, 'Item name is required').max(200, 'Name is too long'),
   description: z.string().max(1000, 'Description is too long').optional().or(z.literal('')),
   code: z.string().max(50, 'Code is too long').optional().or(z.literal('')),
-  quantity_total: z.number().int('Quantity must be a whole number').min(0, 'Quantity cannot be negative'),
+  quantity_total: z
+    .number()
+    .int('Quantity must be a whole number')
+    .min(0, 'Quantity cannot be negative'),
   unit_cost: z
     .number()
     .nonnegative('Cost cannot be negative')

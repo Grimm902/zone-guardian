@@ -39,9 +39,7 @@ export const EquipmentTable = ({ items }: EquipmentTableProps) => {
         ) : (
           items.map((item) => {
             const availablePercentage =
-              item.quantity_total > 0
-                ? (item.quantity_available / item.quantity_total) * 100
-                : 0;
+              item.quantity_total > 0 ? (item.quantity_available / item.quantity_total) * 100 : 0;
 
             return (
               <TableRow key={item.id}>

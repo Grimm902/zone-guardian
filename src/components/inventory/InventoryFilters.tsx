@@ -21,11 +21,7 @@ interface InventoryFiltersProps {
   onClear: () => void;
 }
 
-export const InventoryFilters = ({
-  filters,
-  onFiltersChange,
-  onClear,
-}: InventoryFiltersProps) => {
+export const InventoryFilters = ({ filters, onFiltersChange, onClear }: InventoryFiltersProps) => {
   const { data: categories } = useCategories();
   const { data: locations } = useLocations();
 

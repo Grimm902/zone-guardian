@@ -79,18 +79,10 @@ export const MaintenanceForm = ({
           htmlFor="next_scheduled_date"
           error={form.formState.errors.next_scheduled_date?.message}
         >
-          <Input
-            id="next_scheduled_date"
-            type="date"
-            {...form.register('next_scheduled_date')}
-          />
+          <Input id="next_scheduled_date" type="date" {...form.register('next_scheduled_date')} />
         </FormField>
 
-        <FormField
-          label="Cost"
-          htmlFor="cost"
-          error={form.formState.errors.cost?.message}
-        >
+        <FormField label="Cost" htmlFor="cost" error={form.formState.errors.cost?.message}>
           <Input
             id="cost"
             type="number"
