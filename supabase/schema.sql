@@ -233,3 +233,340 @@ CREATE POLICY "TCM can update settings"
   FOR UPDATE
   USING (public.is_tcm(auth.uid()))
   WITH CHECK (public.is_tcm(auth.uid()));
+
+-- ============================================================================
+-- Inventory System Types
+-- ============================================================================
+
+-- Create equipment condition enum (idempotent)
+DO $$ BEGIN
+  CREATE TYPE public.equipment_condition AS ENUM ('good', 'fair', 'damaged', 'needs_repair', 'retired');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+-- Create location type enum (idempotent)
+DO $$ BEGIN
+  CREATE TYPE public.location_type AS ENUM ('warehouse', 'job_site');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+-- Create maintenance type enum (idempotent)
+DO $$ BEGIN
+  CREATE TYPE public.maintenance_type AS ENUM ('inspection', 'repair', 'replacement');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+-- ============================================================================
+-- Inventory System Tables
+-- ============================================================================
+
+-- Create equipment_categories table
+CREATE TABLE IF NOT EXISTS public.equipment_categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.equipment_categories IS 'Equipment type classification for inventory items';
+
+-- Create locations table
+CREATE TABLE IF NOT EXISTS public.locations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  type public.location_type NOT NULL,
+  address TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.locations IS 'Warehouses and job sites where equipment is stored or deployed';
+
+-- Create equipment_items table
+CREATE TABLE IF NOT EXISTS public.equipment_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id UUID NOT NULL REFERENCES public.equipment_categories(id) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  description TEXT,
+  code TEXT UNIQUE,
+  quantity_total INTEGER NOT NULL DEFAULT 0 CHECK (quantity_total >= 0),
+  quantity_available INTEGER NOT NULL DEFAULT 0 CHECK (quantity_available >= 0),
+  unit_cost DECIMAL(10, 2),
+  condition public.equipment_condition NOT NULL DEFAULT 'good',
+  location_id UUID REFERENCES public.locations(id) ON DELETE SET NULL,
+  image_url TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT quantity_available_check CHECK (quantity_available <= quantity_total)
+);
+
+COMMENT ON TABLE public.equipment_items IS 'Individual equipment records in the inventory system';
+
+-- Create equipment_checkouts table
+CREATE TABLE IF NOT EXISTS public.equipment_checkouts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id UUID NOT NULL REFERENCES public.equipment_items(id) ON DELETE RESTRICT,
+  checked_out_by UUID NOT NULL REFERENCES public.profiles(id) ON DELETE RESTRICT,
+  checked_out_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expected_return_date DATE,
+  checked_in_at TIMESTAMPTZ,
+  checked_in_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  quantity INTEGER NOT NULL CHECK (quantity > 0),
+  destination_location_id UUID REFERENCES public.locations(id) ON DELETE SET NULL,
+  notes TEXT
+);
+
+COMMENT ON TABLE public.equipment_checkouts IS 'Check-in/check-out tracking for equipment items';
+
+-- Create equipment_maintenance table
+CREATE TABLE IF NOT EXISTS public.equipment_maintenance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id UUID NOT NULL REFERENCES public.equipment_items(id) ON DELETE RESTRICT,
+  maintenance_type public.maintenance_type NOT NULL,
+  performed_by UUID NOT NULL REFERENCES public.profiles(id) ON DELETE RESTRICT,
+  performed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  next_scheduled_date DATE,
+  notes TEXT,
+  cost DECIMAL(10, 2)
+);
+
+COMMENT ON TABLE public.equipment_maintenance IS 'Maintenance and inspection history for equipment items';
+
+-- ============================================================================
+-- Inventory System Indexes
+-- ============================================================================
+
+-- Indexes for equipment_categories
+CREATE INDEX IF NOT EXISTS equipment_categories_name_idx ON public.equipment_categories(name);
+
+-- Indexes for locations
+CREATE INDEX IF NOT EXISTS locations_type_idx ON public.locations(type);
+CREATE INDEX IF NOT EXISTS locations_is_active_idx ON public.locations(is_active);
+
+-- Indexes for equipment_items
+CREATE INDEX IF NOT EXISTS equipment_items_category_id_idx ON public.equipment_items(category_id);
+CREATE INDEX IF NOT EXISTS equipment_items_location_id_idx ON public.equipment_items(location_id);
+CREATE INDEX IF NOT EXISTS equipment_items_condition_idx ON public.equipment_items(condition);
+CREATE INDEX IF NOT EXISTS equipment_items_code_idx ON public.equipment_items(code) WHERE code IS NOT NULL;
+
+-- Indexes for equipment_checkouts
+CREATE INDEX IF NOT EXISTS equipment_checkouts_equipment_id_idx ON public.equipment_checkouts(equipment_id);
+CREATE INDEX IF NOT EXISTS equipment_checkouts_checked_out_by_idx ON public.equipment_checkouts(checked_out_by);
+CREATE INDEX IF NOT EXISTS equipment_checkouts_checked_in_at_idx ON public.equipment_checkouts(checked_in_at) WHERE checked_in_at IS NULL;
+CREATE INDEX IF NOT EXISTS equipment_checkouts_checked_out_at_idx ON public.equipment_checkouts(checked_out_at);
+
+-- Indexes for equipment_maintenance
+CREATE INDEX IF NOT EXISTS equipment_maintenance_equipment_id_idx ON public.equipment_maintenance(equipment_id);
+CREATE INDEX IF NOT EXISTS equipment_maintenance_performed_by_idx ON public.equipment_maintenance(performed_by);
+CREATE INDEX IF NOT EXISTS equipment_maintenance_next_scheduled_date_idx ON public.equipment_maintenance(next_scheduled_date) WHERE next_scheduled_date IS NOT NULL;
+
+-- ============================================================================
+-- Inventory System Functions
+-- ============================================================================
+
+-- Create function to check if user can manage inventory (TCM, SM, DC, FS)
+CREATE OR REPLACE FUNCTION public.can_manage_inventory(user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = user_id AND role IN ('tcm', 'sm', 'dc', 'fs')
+  );
+$$;
+
+COMMENT ON FUNCTION public.can_manage_inventory(UUID) IS 'Checks if a user can manage inventory (TCM, SM, DC, FS roles)';
+
+-- Create function to check if user can checkout equipment (TCM, SM, DC, FS, TWS)
+CREATE OR REPLACE FUNCTION public.can_checkout_equipment(user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = user_id AND role IN ('tcm', 'sm', 'dc', 'fs', 'tws')
+  );
+$$;
+
+COMMENT ON FUNCTION public.can_checkout_equipment(UUID) IS 'Checks if a user can checkout equipment (TCM, SM, DC, FS, TWS roles)';
+
+-- ============================================================================
+-- Inventory System Triggers
+-- ============================================================================
+
+-- Triggers for updated_at on inventory tables
+DROP TRIGGER IF EXISTS equipment_categories_updated_at ON public.equipment_categories;
+CREATE TRIGGER equipment_categories_updated_at
+  BEFORE UPDATE ON public.equipment_categories
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+DROP TRIGGER IF EXISTS locations_updated_at ON public.locations;
+CREATE TRIGGER locations_updated_at
+  BEFORE UPDATE ON public.locations
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+DROP TRIGGER IF EXISTS equipment_items_updated_at ON public.equipment_items;
+CREATE TRIGGER equipment_items_updated_at
+  BEFORE UPDATE ON public.equipment_items
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+-- ============================================================================
+-- Inventory System RLS Policies
+-- ============================================================================
+
+-- Enable RLS on all inventory tables
+ALTER TABLE public.equipment_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.locations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.equipment_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.equipment_checkouts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.equipment_maintenance ENABLE ROW LEVEL SECURITY;
+
+-- Equipment Categories RLS Policies
+DROP POLICY IF EXISTS "All authenticated users can view categories" ON public.equipment_categories;
+DROP POLICY IF EXISTS "Managers can insert categories" ON public.equipment_categories;
+DROP POLICY IF EXISTS "Managers can update categories" ON public.equipment_categories;
+DROP POLICY IF EXISTS "Managers can delete categories" ON public.equipment_categories;
+
+CREATE POLICY "All authenticated users can view categories"
+  ON public.equipment_categories
+  FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Managers can insert categories"
+  ON public.equipment_categories
+  FOR INSERT
+  WITH CHECK (public.can_manage_inventory(auth.uid()));
+
+CREATE POLICY "Managers can update categories"
+  ON public.equipment_categories
+  FOR UPDATE
+  USING (public.can_manage_inventory(auth.uid()))
+  WITH CHECK (public.can_manage_inventory(auth.uid()));
+
+CREATE POLICY "Managers can delete categories"
+  ON public.equipment_categories
+  FOR DELETE
+  USING (public.can_manage_inventory(auth.uid()));
+
+-- Locations RLS Policies
+DROP POLICY IF EXISTS "All authenticated users can view locations" ON public.locations;
+DROP POLICY IF EXISTS "Managers can insert locations" ON public.locations;
+DROP POLICY IF EXISTS "Managers can update locations" ON public.locations;
+DROP POLICY IF EXISTS "Managers can delete locations" ON public.locations;
+
+CREATE POLICY "All authenticated users can view locations"
+  ON public.locations
+  FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Managers can insert locations"
+  ON public.locations
+  FOR INSERT
+  WITH CHECK (public.can_manage_inventory(auth.uid()));
+
+CREATE POLICY "Managers can update locations"
+  ON public.locations
+  FOR UPDATE
+  USING (public.can_manage_inventory(auth.uid()))
+  WITH CHECK (public.can_manage_inventory(auth.uid()));
+
+CREATE POLICY "Managers can delete locations"
+  ON public.locations
+  FOR DELETE
+  USING (public.can_manage_inventory(auth.uid()));
+
+-- Equipment Items RLS Policies
+DROP POLICY IF EXISTS "All authenticated users can view items" ON public.equipment_items;
+DROP POLICY IF EXISTS "Managers can insert items" ON public.equipment_items;
+DROP POLICY IF EXISTS "Managers can update items" ON public.equipment_items;
+DROP POLICY IF EXISTS "Managers can delete items" ON public.equipment_items;
+
+CREATE POLICY "All authenticated users can view items"
+  ON public.equipment_items
+  FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Managers can insert items"
+  ON public.equipment_items
+  FOR INSERT
+  WITH CHECK (public.can_manage_inventory(auth.uid()));
+
+CREATE POLICY "Managers can update items"
+  ON public.equipment_items
+  FOR UPDATE
+  USING (public.can_manage_inventory(auth.uid()))
+  WITH CHECK (public.can_manage_inventory(auth.uid()));
+
+CREATE POLICY "Managers can delete items"
+  ON public.equipment_items
+  FOR DELETE
+  USING (public.can_manage_inventory(auth.uid()));
+
+-- Equipment Checkouts RLS Policies
+DROP POLICY IF EXISTS "All authenticated users can view checkouts" ON public.equipment_checkouts;
+DROP POLICY IF EXISTS "Authorized users can checkout equipment" ON public.equipment_checkouts;
+DROP POLICY IF EXISTS "Authorized users can update checkouts" ON public.equipment_checkouts;
+DROP POLICY IF EXISTS "Managers can delete checkouts" ON public.equipment_checkouts;
+
+CREATE POLICY "All authenticated users can view checkouts"
+  ON public.equipment_checkouts
+  FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authorized users can checkout equipment"
+  ON public.equipment_checkouts
+  FOR INSERT
+  WITH CHECK (public.can_checkout_equipment(auth.uid()));
+
+CREATE POLICY "Authorized users can update checkouts"
+  ON public.equipment_checkouts
+  FOR UPDATE
+  USING (public.can_checkout_equipment(auth.uid()))
+  WITH CHECK (public.can_checkout_equipment(auth.uid()));
+
+CREATE POLICY "Managers can delete checkouts"
+  ON public.equipment_checkouts
+  FOR DELETE
+  USING (public.can_manage_inventory(auth.uid()));
+
+-- Equipment Maintenance RLS Policies
+DROP POLICY IF EXISTS "All authenticated users can view maintenance" ON public.equipment_maintenance;
+DROP POLICY IF EXISTS "Managers can insert maintenance" ON public.equipment_maintenance;
+DROP POLICY IF EXISTS "Managers can update maintenance" ON public.equipment_maintenance;
+DROP POLICY IF EXISTS "Managers can delete maintenance" ON public.equipment_maintenance;
+
+CREATE POLICY "All authenticated users can view maintenance"
+  ON public.equipment_maintenance
+  FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Managers can insert maintenance"
+  ON public.equipment_maintenance
+  FOR INSERT
+  WITH CHECK (public.can_manage_inventory(auth.uid()));
+
+CREATE POLICY "Managers can update maintenance"
+  ON public.equipment_maintenance
+  FOR UPDATE
+  USING (public.can_manage_inventory(auth.uid()))
+  WITH CHECK (public.can_manage_inventory(auth.uid()));
+
+CREATE POLICY "Managers can delete maintenance"
+  ON public.equipment_maintenance
+  FOR DELETE
+  USING (public.can_manage_inventory(auth.uid()));

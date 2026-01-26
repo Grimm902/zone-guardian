@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AlertTriangle, User, LogOut, Settings, Users, Home, Menu, X, Shield } from 'lucide-react';
+import { AlertTriangle, User, LogOut, Settings, Users, Home, Menu, X, Shield, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
@@ -29,9 +29,17 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     navigate('/');
   };
 
-  const navItems = [{ href: '/app', label: 'Dashboard', icon: Home }];
+  const navItems = [
+    { href: '/app', label: 'Dashboard', icon: Home },
+    { href: '/app/inventory', label: 'Inventory', icon: Package },
+  ];
 
-  const isActive = (href: string) => location.pathname === href;
+  const isActive = (href: string) => {
+    if (href === '/app/inventory') {
+      return location.pathname.startsWith('/app/inventory');
+    }
+    return location.pathname === href;
+  };
 
   return (
     <div className="min-h-screen bg-background">

@@ -39,6 +39,18 @@ const AdminPermissions = lazy(() =>
 const AdminSettings = lazy(() =>
   import('./pages/AdminSettings').then((module) => ({ default: module.default }))
 );
+const Inventory = lazy(() =>
+  import('./pages/Inventory').then((module) => ({ default: module.default }))
+);
+const InventoryItem = lazy(() =>
+  import('./pages/InventoryItem').then((module) => ({ default: module.default }))
+);
+const InventoryCategories = lazy(() =>
+  import('./pages/InventoryCategories').then((module) => ({ default: module.default }))
+);
+const InventoryLocations = lazy(() =>
+  import('./pages/InventoryLocations').then((module) => ({ default: module.default }))
+);
 const Unauthorized = lazy(() =>
   import('./pages/Unauthorized').then((module) => ({ default: module.default }))
 );
@@ -140,6 +152,44 @@ const App = () => (
                       <ProtectedRoute>
                         <RoleRoute allowedRoles={['tcm']}>
                           <AdminSettings />
+                        </RoleRoute>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Inventory Routes */}
+                  <Route
+                    path="/app/inventory"
+                    element={
+                      <ProtectedRoute>
+                        <Inventory />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/app/inventory/:id"
+                    element={
+                      <ProtectedRoute>
+                        <InventoryItem />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/app/inventory/categories"
+                    element={
+                      <ProtectedRoute>
+                        <RoleRoute allowedRoles={['tcm', 'sm', 'dc', 'fs']}>
+                          <InventoryCategories />
+                        </RoleRoute>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/app/inventory/locations"
+                    element={
+                      <ProtectedRoute>
+                        <RoleRoute allowedRoles={['tcm', 'sm', 'dc', 'fs']}>
+                          <InventoryLocations />
                         </RoleRoute>
                       </ProtectedRoute>
                     }
